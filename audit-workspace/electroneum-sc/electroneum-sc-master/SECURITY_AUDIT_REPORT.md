@@ -7,8 +7,6 @@
 
 > **Disclaimer:** This audit was conducted under the authorized Bugcrowd bug bounty program.
 > No exploits were enacted on production systems. All findings are based on static code analysis.
-> The previously reported priority signature replay finding (PriorityTx hash omits sender V,R,S)
-> is excluded from this report to avoid duplication.
 
 ---
 
@@ -358,6 +356,36 @@ The fee is computed as `fee = inputs_amount - outputs_amount` (unsigned subtract
 
 ---
 
+## Finding 12: HIGH — Priority-Tx Signature Not Bound to Sender (Replay Across Accounts)
+
+**Severity:** High (P2) — Unauthorized Priority Access
+**CVSS:** 7.5
+**Category:** Insufficient Verification of Data Authenticity (CWE-345)
+**Impact:** (B) Gaming consensus — attacker gains unauthorized free execution; (E) Tricking exchanges — transactions appear authorized by a priority entity when they are not
+
+### Location
+
+- `core/types/transaction_signing.go:358-360` — `londonSigner.PriorityHash` returns `Hash(tx)` (body-only, no sender binding)
+- `core/types/transaction_signing.go:293-307` — `londonSigner.PrioritySender` recovers against body-only hash
+- `core/types/transaction_signing.go:395-414` — `futureForkSigner.PriorityHash` (THE FIX — includes V,R,S)
+- `params/config.go:63,96,128` — `FutureForkBlock = math.MaxInt64` on all networks (fix inactive)
+
+### Description
+
+`londonSigner.PriorityHash(tx)` returns the same hash as `londonSigner.Hash(tx)` — a hash over body fields only, excluding the sender's ECDSA signature (V, R, S). This means the priority key's signature is not bound to any particular sender. An attacker who observes a valid priority transaction can extract its priority signature and replay it onto their own transaction with identical body fields. The replayed signature passes all validation because `PriorityHash` is the same for both transactions.
+
+The fix (`futureForkSigner`) includes V, R, S in the priority hash, but `FutureForkBlock = math.MaxInt64` on mainnet, stagenet, and testnet means it never activates at any realistic block number.
+
+**Note:** The repository contains test coverage for this vulnerability (`core/types/priority_sig_binding_test.go`, 6 tests). The Electroneum team appears aware of the issue but has not activated the fix on any network.
+
+Combined with gas waiver keys (`IsGasPriceWaiver: true`), the replayed priority authorization enables zero-cost block-capacity consumption from an unauthorized account.
+
+### Detailed Report
+
+See `audit-priority-sig-replay/report.md` for full analysis, attack scenario, and evidence.
+
+---
+
 # Summary Table
 
 | # | Severity | Codebase | Category | Location | Description |
@@ -373,19 +401,14 @@ The fee is computed as `fee = inputs_amount - outputs_amount` (unsigned subtract
 | 9 | High | Legacy | Crypto | crypto.cpp:496 | hash_to_point missing cofactor (small-subgroup attack) |
 | 10 | High | Legacy | P2P Info Leak | cryptonote_config.h:147 | Debug commands enabled; null trust key |
 | 11 | High | Legacy | Int Overflow | tx_pool.cpp:171 | Fee underflow before overspend validation |
-
----
-
-## Deduplication Note
-
-The following known finding was **excluded** from this report:
-- **Priority Transaction Signature Replay** — `londonSigner.PriorityHash(tx)` equals `Hash(tx)` without sender's V,R,S, allowing cross-account replay. Fix exists in `futureForkSigner` but `FutureForkBlock = math.MaxInt64` means it is not activated.
+| 12 | High | ETN-SC | Sig Replay | transaction_signing.go:358 | Priority sig not bound to sender; replay across accounts |
 
 ---
 
 ## Recommended Priority for Reporting
 
 1. **Finding 1** (ETN-SC statedb race condition) — Strongest novel finding for ETN-SC. Clear code path to node crash.
-2. **Finding 7** (Legacy RPC signing oracle) — Strongest novel finding for legacy chain. Clear auth bypass.
-3. **Finding 8** (Legacy random32_unbiased bias) — Cryptographic primitive bug with system-wide impact.
-4. **Finding 9** (Legacy hash_to_point cofactor) — Cryptographic primitive bug.
+2. **Finding 12** (ETN-SC priority sig replay) — Priority signature not bound to sender on any shipped network. Fix written but `FutureForkBlock=MaxInt64`. Note: test file exists in repo documenting the vulnerability — may be considered known issue.
+3. **Finding 7** (Legacy RPC signing oracle) — Strongest novel finding for legacy chain. Clear auth bypass.
+4. **Finding 8** (Legacy random32_unbiased bias) — Cryptographic primitive bug with system-wide impact.
+5. **Finding 9** (Legacy hash_to_point cofactor) — Cryptographic primitive bug.
