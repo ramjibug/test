@@ -69,6 +69,7 @@
 | `evidence/logs/05-matrix-table.md` | Unpatched full test matrix (table) |
 | `evidence/logs/06-patched-matrix.log` | Patched full test matrix (raw) |
 | `evidence/logs/06-patched-matrix-table.md` | Patched full test matrix (table) |
+| `evidence/capi_probe_test.cpp` | Unexecuted C++ test template for the public C++ API (targets the `TWAnyAddressIsValid`/`TWAnyAddressCreateWithString` path, which was REFUTED by source analysis as not reaching the vulnerable Rust parser) |
 | `evidence/logs/07-cabi-probe.log` | Unpatched C-ABI probe results |
 | `evidence/logs/08-cabi-probe-patched.log` | Patched C-ABI probe results |
 | `scripts/run_matrix.sh` | Test matrix runner (requires binary path edit) |
