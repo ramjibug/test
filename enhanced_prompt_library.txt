@@ -1,0 +1,615 @@
+CLAUDE CODE BUG BOUNTY TOOLKIT — ENHANCED PROMPT LIBRARY
+Enhanced Edition | Web Application Security
+
+Use only on authorized targets. AI output is a lead, not proof.
+120+ prompts across 15 vulnerability categories.
+
+Prompts 1–8 are in the guide's setup chapters. Original prompts 9–85 follow,
+then NEW prompts 86–122 covering OAuth/JWT, GraphQL, WebSocket, race conditions,
+cloud/infrastructure, cache poisoning, and client-side security.
+
+================================================================================
+ORIGINAL PROMPTS (ENHANCED)
+================================================================================
+
+PROMPT 9 — Map exposed routes from local source
+CATEGORY: Reconnaissance and architecture
+
+From this repository, identify ALL route definitions and HTTP methods. Present as a table: Method | Path | Controller | Auth Required? | Auth Type | Input Params | Middleware. Flag routes that accept user input but lack validation middleware, handle sensitive data without authentication, use different auth patterns than siblings, or accept file uploads. Do not probe a live service or invent routes.
+
+PROMPT 10 — Identify trust boundaries
+CATEGORY: Reconnaissance and architecture
+
+Trace where untrusted input crosses into privileged code or sensitive operations. For each trust boundary crossing, document: Source | Input Type | Transformations | Validation Checks | Sink (Sensitive Op) | Missing Controls | Risk Level. Treat each concern as a hypothesis. Prioritize boundaries where user input reaches: database queries, file operations, command execution, template rendering, or external API calls.
+
+PROMPT 11 — Inventory sensitive data
+CATEGORY: Reconnaissance and architecture
+
+Identify code paths that read, write, export, or log sensitive data. Categorize by data type: Authentication (passwords, tokens, API keys), Personal (email, name, address), Financial (credit cards, bank accounts), Business (internal pricing, admin configs). For each, document where it enters, how it's stored, where it's logged, who can access it, and what minimization controls exist. Do not print secrets or real user data.
+
+PROMPT 12 — Map roles and permissions
+CATEGORY: Reconnaissance and architecture
+
+Extract roles, permissions, ownership checks, and policy helpers from this repository. Create a matrix: Role | Action | Object | Enforcement Point | Evidence. For each cell: ALLOWED (cite code), DENIED (cite code), or UNKNOWN. Highlight any role with UNKNOWN cells for sensitive actions. Mark inconsistencies between roles.
+
+PROMPT 13 — Review API documentation
+CATEGORY: Reconnaissance and architecture
+
+Compare the provided API documentation with route/controller code. Create a discrepancy table: Endpoint | Doc Says | Code Does | Type | Security Relevant? Types: UNDOCUMENTED_ENDPOINT, MISSING_AUTH, EXTRA_FIELDS, WRONG_METHOD, DEPRECATED_ACTIVE. Do not assume a mismatch is exploitable.
+
+PROMPT 14 — Find security-sensitive configuration
+CATEGORY: Reconnaissance and architecture
+
+Locate security-relevant configuration and present as a posture table: Control | Setting | File | Secure? | Notes. Check for: cookie flags (Secure, HttpOnly, SameSite), CORS origins, CSRF protection, debug mode, trusted proxies, secrets, TLS, CSP, X-Frame-Options, HSTS, rate limits, session timeouts, password policy. Do not expose secret values.
+
+PROMPT 15 — Prioritize attack surfaces
+CATEGORY: Reconnaissance and architecture
+
+Rank routes by security relevance. Score each 1-5 for: Data sensitivity, Privilege level, Input complexity, Business impact, Control maturity. Present as a ranked table with total score and recommended investigation order. Explain the evidence behind each score.
+
+PROMPT 16 — Review third-party boundaries
+CATEGORY: Reconnaissance and architecture
+
+Identify integrations, webhooks, external API clients, and trust assumptions. For each: Service | Direction | Auth Method | Input Validated? | Secret Storage | Error Handling. Flag hardcoded credentials, missing webhook signatures, unvalidated callbacks, and missing timeouts. Do not contact third parties.
+
+PROMPT 17 — Build an investigation backlog
+CATEGORY: Reconnaissance and architecture
+
+Turn the security map into a prioritized backlog. Each item: # | Question | Files/Routes | Priority (H/M/L) | Why | Safe Test Idea | Evidence Needed | Est. Time. Priority = data sensitivity x control weakness x scope confidence. Include time estimates.
+
+PROMPT 18 — Compare two implementations
+CATEGORY: Reconnaissance and architecture
+
+Compare two code paths side by side: Aspect | Path A | Path B | Difference | Security Relevant? Check: authorization, input validation, error responses, data exposure, rate limiting, logging, session handling. Explain which differences could lead to a bypass.
+
+PROMPT 19 — Review login flow
+CATEGORY: Authentication and account recovery
+
+Trace login from request to session/token issuance. Document: input handling, credential verification (hashing, timing safety), rate limiting (key, threshold), error responses (do they differ?), session creation (what's in the token?), session rotation, logging (passwords logged?), MFA integration (can it be skipped?). Cite code. List what must be verified in a controlled test.
+
+PROMPT 20 — Review password reset lifecycle
+CATEGORY: Authentication and account recovery
+
+Trace complete lifecycle as a table: Step | Implementation | Security Control | Concern. Steps: token generation (entropy), token storage (hashed?), delivery, validation (one-use? time-bound?), account binding, password update (old sessions invalidated?), post-reset state. Do not claim exploitability without evidence.
+
+PROMPT 21 — Review email-change flow
+CATEGORY: Authentication and account recovery
+
+Trace email change and check: requires reauthentication, notifies both addresses, new email requires verification, sessions invalidated, reset tokens invalidated, rate-limited, change is logged. List control tests using accounts you own.
+
+PROMPT 22 — Review MFA enforcement
+CATEGORY: Authentication and account recovery
+
+Map MFA enforcement: Flow | MFA Required? | Bypass Possible? | Evidence. Flows: normal login, API login, password reset, email change, OAuth/SSO, remember device, recovery codes, session refresh, admin actions, API key creation. Identify the weakest path. Do not access other users' accounts.
+
+PROMPT 23 — Review session lifecycle
+CATEGORY: Authentication and account recovery
+
+Document: Event | What Happens | Configured or Default? | Evidence. Events: login, logout, password change, email change, role change, idle timeout, absolute timeout, concurrent sessions. Separate framework defaults from configured behavior. Flag events where sessions should be invalidated but aren't.
+
+PROMPT 24 — Check token binding assumptions
+CATEGORY: Authentication and account recovery
+
+Inspect tokens: Token Type | Bound To | Expiry | One-Use? | State Check | Concern. "State Check" = does validation check current account state or just token validity? Identify missing checks as hypotheses. Propose non-destructive tests with test accounts.
+
+PROMPT 25 — Review registration validation
+CATEGORY: Authentication and account recovery
+
+Trace fields: Field | Client Validation | Server Validation | Storage | Sanitized on Output? Check for: email format bypass, username collisions (case, unicode, whitespace), password policy enforcement, duplicate handling, confirmation flow. Assess security vs. usability impact.
+
+PROMPT 26 — Analyze authentication errors
+CATEGORY: Authentication and account recovery
+
+Compare errors: Scenario | Status Code | Response Body | Timing | Headers. Scenarios: valid user wrong password, invalid user, locked account, disabled account, valid/invalid reset email. Determine if differences reveal account existence. Describe realistic impact.
+
+PROMPT 27 — Check rate-limit design
+CATEGORY: Authentication and account recovery
+
+Document: Endpoint | Keying Strategy | Threshold | Window | Response | Bypass Hypothesis. Keying = IP, user, session, combination. Bypass = header injection, distributed, parameter variation, endpoint aliasing. Do not perform high-volume tests.
+
+PROMPT 28 — Build an auth test matrix
+CATEGORY: Authentication and account recovery
+
+Matrix: Test Case | Flow | Account Setup | Steps | Expected Secure Result | Evidence to Collect | Status. Cover: login, logout, password reset, email change, MFA, session invalidation, concurrent sessions, account deletion. Include cleanup.
+
+PROMPT 29 — Trace object ownership checks
+CATEGORY: Access control and IDOR
+
+Trace: Request → Authentication → Object Lookup → Ownership Check → Action. For each step, cite code. Answer: How is user identified? How is object looked up? Where is the ownership check? Is it in middleware, controller, or service? What happens on failure? Do not infer a flaw from an identifier format alone.
+
+PROMPT 30 — Compare user roles
+CATEGORY: Access control and IDOR
+
+Compare same action across two test roles: Aspect | Role A (expected: allowed) | Role B (expected: denied) | Evidence. Include HTTP request, status code, response body, side effects, error message. Define what indicates role enforcement failure.
+
+PROMPT 31 — Review server-side authorization
+CATEGORY: Access control and IDOR
+
+For each action: Action | Client-Side Check | Server-Side Check | Middleware | Service Layer | Verdict (SERVER_ENFORCED, CLIENT_ONLY, UNCLEAR). Explain what runtime evidence confirms server enforcement.
+
+PROMPT 32 — Review tenant isolation
+CATEGORY: Access control and IDOR
+
+Trace tenant IDs: Where does it come from? (URL, header, session, subdomain, JWT). Is it from trusted state or user input? Do queries always filter by tenant? Shared tables without scoping? Can requests reference cross-tenant objects? Do background jobs respect boundaries?
+
+PROMPT 33 — Review mass assignment
+CATEGORY: Access control and IDOR
+
+Inspect binding: Endpoint | Accepted Fields | Protected Fields | Allowlist Method | Unprotected? Protected = role, admin, verified, tenant_id, price, balance. Allowlist = strong_params, DTO, whitelist, schema, or NONE. Propose tests with disposable accounts.
+
+PROMPT 34 — Review administrative routes
+CATEGORY: Access control and IDOR
+
+Inventory: Admin Route | Auth Check | Role Check | Middleware Stack | Alternate Path? Look for: inconsistent middleware, direct service calls, debug endpoints, admin APIs on same origin. Do not attempt privileged actions.
+
+PROMPT 35 — Check access after ownership change
+CATEGORY: Access control and IDOR
+
+Analyze: Scenario | Expected | Code Path | Cached? | Background Job? Scenarios: user removed from team, object transferred, role downgraded, account deactivated. Identify cache and stale authorization issues. Require runtime evidence.
+
+PROMPT 36 — Review download and export permissions
+CATEGORY: Access control and IDOR
+
+Trace: Endpoint | Auth Check | Ownership Check | Link Expiry | Predictable URL? Check signed URLs, time-limited tokens, direct path access. Do not access other users' files.
+
+PROMPT 37 — Create an authorization matrix
+CATEGORY: Access control and IDOR
+
+Build: Action | Anonymous | User | Admin | Owner | Team Member. Mark each: ALLOWED (cite), DENIED (cite), or UNKNOWN. List tests for every UNKNOWN cell.
+
+PROMPT 38 — Challenge an IDOR hypothesis
+CATEGORY: Access control and IDOR
+
+1. List 5 benign explanations. 2. Design minimal two-account test: A creates X, B creates Y, can B access X? 3. Define pass/fail evidence. 4. Set stop conditions. Use only objects from test accounts.
+
+PROMPT 39 — Trace untrusted input to SQL
+CATEGORY: Input handling and injection
+
+Trace: Endpoint | Input | Query Method | Parameterized? | ORM? | Dynamic Parts | Concern. Check: raw queries alongside ORM, search/filter/sort in queries, JSON/array expansion, stored procedures. Do not run payloads.
+
+PROMPT 40 — Review output encoding for XSS
+CATEGORY: Input handling and injection
+
+Trace: Source | Output Context | Encoding Applied | Framework Auto-Escape? | Bypass Risk. Contexts: HTML body, attribute, URL, JavaScript, CSS, DOM. Each needs different encoding. Reflection alone is not XSS — explain what browser evidence is needed.
+
+PROMPT 41 — Review template rendering
+CATEGORY: Input handling and injection
+
+Inspect: Template File | Engine | Auto-Escape? | Raw/Unescaped | User-Controlled? Trace raw output to its source. Separate unsafe (raw user input) from safe (raw admin config). Check for SSTI.
+
+PROMPT 42 — Review command execution sinks
+CATEGORY: Input handling and injection
+
+Search: Location | Function/API | Input Source | Argument Handling | Validated? Check exec, spawn, system, popen, etc. Is input a separate argument (safe) or concatenated shell string (dangerous)? Do not execute or propose destructive payloads.
+
+PROMPT 43 — Review path handling
+CATEGORY: Input handling and injection
+
+Trace: Endpoint | Path Source | Normalization | Traversal Protection | Chroot? Check: path.join vs resolve, null bytes, URL encoding, double-encoding, OS paths, symlinks, zip extraction. Use local fixtures only.
+
+PROMPT 44 — Review XML parsing
+CATEGORY: Input handling and injection
+
+Identify: Library/Parser | External Entities | DTD Processing | XInclude | Expansion Protection. Check default config and hardening. Look for XXE, SSRF via entities, DoS via expansion.
+
+PROMPT 45 — Review server-side URL fetching
+CATEGORY: Input handling and injection
+
+Trace: Endpoint | URL Source | Scheme Validation | Host Validation | Redirects | DNS Rebinding? Check allowed schemes, host lists, private IP blocking, redirect chains, DNS timing. Do not request internal/metadata addresses. Propose mock-based validation.
+
+PROMPT 46 — Review deserialization
+CATEGORY: Input handling and injection
+
+Locate: Location | Format | Library | Type Restrictions | Gadget Risk. JSON (usually safe), YAML load() (dangerous), pickle (always dangerous), Java/PHP serialization (dangerous). Describe safe verification.
+
+PROMPT 47 — Review regex denial-of-service risk
+CATEGORY: Input handling and injection
+
+Inspect: Location | Pattern | Input Source | Backtracking Risk | Length Limit. High-risk: nested quantifiers, overlapping alternation, backreferences. Recommend bounded local tests. Do not load-test live targets.
+
+PROMPT 48 — Review validation consistency
+CATEGORY: Input handling and injection
+
+Compare: Field | Client Validation | Server Validation | Database Constraint | Gap? Flag where server is more permissive than client, or related endpoints validate differently.
+
+PROMPT 49 — Review API object properties
+CATEGORY: API and business logic
+
+For each property: Readable By | Writable By | Filtered? | Protected? | Evidence. Identify leaks and privileged value acceptance. Propose tests with test data.
+
+PROMPT 50 — Review pagination and filtering
+CATEGORY: API and business logic
+
+Inspect: Endpoint | Pagination Method | Max Page Size | Auth-Scoped? | Filter Injection? | Unbounded? Can users request all records or expose other tenants' data? Do not enumerate production records.
+
+PROMPT 51 — Review webhook verification
+CATEGORY: API and business logic
+
+Trace: Webhook Source | Signature Method | Replay Protection | Event Validation | Idempotency. Check HMAC, timestamps, event filtering, schema validation. Propose tests with fabricated events.
+
+PROMPT 52 — Review payment or pricing logic
+CATEGORY: API and business logic
+
+Inspect: Step | Source of Truth | Client-Controlled? | Validation | Concern. Steps: price display, cart total, discount, quantity, currency, payment, entitlement. Is price recalculated server-side? Sandbox only.
+
+PROMPT 53 — Review invitation flow
+CATEGORY: API and business logic
+
+Trace: Step | Implementation | Bound to Invitee? | Role Check | Expiry | Concern. Can tokens be used by unintended recipients? Can roles be elevated? Single-use?
+
+PROMPT 54 — Review workflow state transitions
+CATEGORY: API and business logic
+
+Model as state machine. Transition | Required Checks | Endpoint | Can Be Skipped? | Evidence. Check for direct state manipulation, missing validation, race conditions. Use disposable accounts.
+
+PROMPT 55 — Review idempotency and replay
+CATEGORY: API and business logic
+
+Inspect: Action | Idempotency Key? | Scope | Validated? | Replay Impact. Can payments be replayed? Invitations repeated? Votes duplicated? Distinguish retries from duplicate effects.
+
+PROMPT 56 — Review file upload handling
+CATEGORY: API and business logic
+
+Trace pipeline: Check | Implementation | Bypass Risk. Checks: type validation (extension vs magic bytes), filename sanitization, size limits, storage location, serving mechanism, Content-Type on serve, processing. Use harmless test files.
+
+PROMPT 57 — Review CORS and CSRF assumptions
+CATEGORY: API and business logic
+
+Inspect: Control | Configuration | State-Changing Routes Protected? | Evidence. Controls: CORS origins/methods/credentials, CSRF tokens, SameSite cookies, Content-Type enforcement. Identify cross-origin state-change vectors.
+
+PROMPT 58 — Review cache and sensitive responses
+CATEGORY: API and business logic
+
+Identify: Endpoint | Contains PII/Tokens? | Cache-Control | Vary Header | CDN Cached? | Concern. Check: missing no-store, shared cache keys with auth tokens, CDN caching of personalized content.
+
+PROMPT 59 — Try to disprove a finding
+CATEGORY: Validation and false-positive reduction
+
+List at least SEVEN benign explanations (framework default, intentional design, test artifact, missing context, prod vs dev difference, client vs server distinction, timing/caching). For each, identify the smallest safe test. Rate plausibility HIGH/MEDIUM/LOW. Identify the single most informative test first.
+
+PROMPT 60 — Separate facts from inference
+CATEGORY: Validation and false-positive reduction
+
+Rewrite into: CONFIRMED FACTS (with evidence), REASONABLE INFERENCES (cite supporting facts), UNSUPPORTED ASSUMPTIONS (what evidence is needed), MISSING EVIDENCE (what to confirm/deny). If >30% are assumptions, the investigation needs more work.
+
+PROMPT 61 — Build a control test
+CATEGORY: Validation and false-positive reduction
+
+Design with: Preconditions, Variable (single thing changed), Test case, Control case, Expected secure result, Failure indicator, Success indicator, Evidence to capture, Cleanup.
+
+PROMPT 62 — Check reproducibility
+CATEGORY: Validation and false-positive reduction
+
+For each step, flag if missing: account type/role, exact URL, HTTP method/headers, request body, auth state, expected response, required pre-state, post-step verification. Flag gaps, don't fill them.
+
+PROMPT 63 — Assess impact conservatively
+CATEGORY: Validation and false-positive reduction
+
+Map to: Impact Type | Demonstrated? | Evidence | Prerequisites | Realistic? Types: Confidentiality, Integrity, Availability. DEMONSTRATED = actually happened. State prerequisites honestly. Do not chain hypothetical impacts.
+
+PROMPT 64 — Check scope fit
+CATEGORY: Validation and false-positive reduction
+
+Compare: Aspect | Finding | Program Rule | Verdict (IN_SCOPE, OUT_OF_SCOPE, UNCLEAR). For UNCLEAR: quote the ambiguous text and suggest asking the program.
+
+PROMPT 65 — Assess duplicate risk
+CATEGORY: Validation and false-positive reduction
+
+Compare: Aspect | My Finding | Prior Report(s) | Same Root Cause? Aspects: component, vuln type, attack vector, root cause, impact. Same symptoms ≠ same root cause. Different bypass for same control IS new.
+
+PROMPT 66 — Review evidence quality
+CATEGORY: Validation and false-positive reduction
+
+Audit: Claim | Evidence Type | Present? | Sufficient? | Sensitive Data? Flag claims backed only by "AI said so." List what must be redacted.
+
+PROMPT 67 — Make a verdict
+CATEGORY: Validation and false-positive reduction
+
+Choose: CONFIRMED (reproduced, evidenced, impactful, in scope), PLAUSIBLE BUT UNVERIFIED (code suggests flaw, no runtime proof), NOT DEMONSTRATED (evidence doesn't support), OUT OF SCOPE/UNCLEAR. Cite evidence, identify most important missing fact, recommend safest next step.
+
+PROMPT 68 — Prepare a minimal PoC
+CATEGORY: Validation and false-positive reduction
+
+Constraints: smallest possible, self-contained, safe (test accounts, placeholders), honest (demonstrated only), clean (setup + cleanup). Format as numbered steps with curl requests.
+
+PROMPT 69 — Generate a report outline
+CATEGORY: Report writing and prioritization
+
+Structure: Title ([root cause] allows [impact] in [asset]), Severity, Asset, Summary, Prerequisites, Steps to Reproduce, Expected Result, Actual Result, Impact, Evidence, Remediation. Do not invent results.
+
+PROMPT 70 — Improve a report title
+CATEGORY: Report writing and prioritization
+
+Formula: [Root Cause] + [Impact] + [Where]. No severity adjectives unless demonstrated. No exclamation marks. Name root cause (not "vulnerability"), demonstrated impact (not worst case), specific asset.
+
+PROMPT 71 — Write technical root cause
+CATEGORY: Report writing and prioritization
+
+Structure: What should happen (intended control), What actually happens (implementation gap), Why it fails (specific mistake), Where it fails (file:line), Contributing factors (defaults, library misuse).
+
+PROMPT 72 — Write reproduction steps
+CATEGORY: Report writing and prioritization
+
+Each step: [Step N] Action, Method, URL, Headers, Body, Auth, Expected, Actual. Step 0 = account setup. Final step = cleanup. Never fabricate tokens or responses.
+
+PROMPT 73 — Explain impact to triage
+CATEGORY: Report writing and prioritization
+
+Three paragraphs: 1. What was demonstrated (not "could"). 2. Attack prerequisites. 3. Scope of impact. Label untested escalation as "HYPOTHETICAL." Triage teams downgrade overclaims.
+
+PROMPT 74 — Redact evidence
+CATEGORY: Report writing and prioritization
+
+Check: Data Type | Found? | Location | Redaction. Types: session cookies, tokens, passwords, emails, names, internal IPs, API keys, file paths. Use stable placeholders.
+
+PROMPT 75 — Estimate severity carefully
+CATEGORY: Report writing and prioritization
+
+Factors: Impact type (C/I/A), Impact scope, Attack complexity, Privileges required, User interaction. If unknown: "Severity cannot be reliably assigned because [reason]." Defer to program rubric.
+
+PROMPT 76 — Create a final submission checklist
+CATEGORY: Report writing and prioritization
+
+Return: BLOCKERS (must fix), RECOMMENDED IMPROVEMENTS (strengthen), READY-TO-SUBMIT (complete).
+
+PROMPT 77 — Summarize a long investigation
+CATEGORY: Report writing and prioritization
+
+Under 200 words: Root cause, Affected asset, Prerequisites, Reproduction (2-3 sentences), Result, Impact. Exclude speculation and secrets.
+
+PROMPT 78 — Turn a rejected lead into learning
+CATEGORY: Report writing and prioritization
+
+Document: What I thought, Why it was wrong, What evidence showed, What I needed, Reusable lesson. Do not relabel a non-bug.
+
+PROMPT 79 — Choose the next best task
+CATEGORY: Efficiency and session management
+
+Score: Lead | Impact (1-5) | Evidence (1-5) | Effort (1-5) | Scope (1-5) | FP Risk (1-5) | Score. Formula: (Impact x Evidence x Scope) / (Effort x FP Risk). Recommend highest-scoring lead.
+
+PROMPT 80 — Reduce context safely
+CATEGORY: Efficiency and session management
+
+Under 500 words: FACTS, HYPOTHESES (with strength: H/M/L), TESTED, REJECTED, NEXT (top 3). Should let next session start in <5 minutes.
+
+PROMPT 81 — Review a diff for security regressions
+CATEGORY: Efficiency and session management
+
+Analyze: Changed Line | Category | Before | After | Concern Level. Categories: auth, authz, validation, data exposure, trust boundary, error handling, logging, config, dependency. One test per HIGH concern.
+
+PROMPT 82 — Generate local unit-test ideas
+CATEGORY: Efficiency and session management
+
+Test Case | Type | Input | Expected | Rationale. Types: POSITIVE (valid succeeds), NEGATIVE (invalid fails), BOUNDARY (edges), REGRESSION (previous issues). Synthetic fixtures only.
+
+PROMPT 83 — Review dependency risk
+CATEGORY: Efficiency and session management
+
+Package | Version | Last Updated | Known Advisories? | Risk. Check: outdated + CVEs, typosquatting, postinstall scripts, unmaintained (2+ years). Don't claim vulnerable without verified advisories.
+
+PROMPT 84 — Prepare a responsible disclosure note
+CATEGORY: Efficiency and session management
+
+Structure: To, Subject, Summary (2 sentences), Affected Asset, Evidence Available, Timeline, Contact. No secrets or PII. Keep it professional.
+
+PROMPT 85 — Conduct a post-investigation review
+CATEGORY: Efficiency and session management
+
+Review: Phase | Time Spent | Productive? | Lesson. Phases: recon, hypothesis, testing, validation, reporting. Three specific improvements for next time.
+
+
+================================================================================
+NEW PROMPTS — EXPANDED CATEGORIES
+================================================================================
+
+PROMPT 86 — Review OAuth implementation
+CATEGORY: OAuth, JWT, and token security
+
+Trace the OAuth/OIDC flow: Step | Implementation | Security Control | Concern. Steps: authorization request (state? PKCE?), redirect URI validation (exact match?), code exchange (server-to-server?), token storage (HttpOnly?), refresh (rotation?), scope enforcement, account linking (verified email?). Check for: open redirect via redirect_uri, missing state/PKCE, token leakage, account takeover via linking. Do not test with other users' OAuth accounts.
+
+PROMPT 87 — Review JWT implementation
+CATEGORY: OAuth, JWT, and token security
+
+Inspect: Aspect | Implementation | Secure? | Evidence. Aspects: algorithm (explicit whitelist?), secret/key management, claims validation (iss, aud, exp, nbf, iat), storage, revocation, refresh, payload sensitivity. Check for: algorithm confusion (alg:none, RS256→HS256), missing signature verification, expired token acceptance, sensitive data in unencrypted payloads, JWK/kid injection. Do not forge tokens for accounts you don't control.
+
+PROMPT 88 — Review token refresh mechanism
+CATEGORY: OAuth, JWT, and token security
+
+Trace: How generated (entropy)? Where stored? Rotated on use? Expiry? Reusable after rotation (replay)? Revoking access also revokes refresh? Bound to client/device? A stolen refresh token can be more damaging than a stolen access token.
+
+PROMPT 89 — Review API key management
+CATEGORY: OAuth, JWT, and token security
+
+Inspect: Aspect | Implementation | Secure? Aspects: generation (entropy, prefix), storage (hashed?), rotation, scoping (per-resource?), revocation, transmission (header vs query), logging (masked?). Flag: keys in URLs, keys in client code, overly permissive scopes, missing rotation.
+
+PROMPT 90 — Review OAuth redirect URI handling
+CATEGORY: OAuth, JWT, and token security
+
+Inspect: Exact match or pattern? Wildcards/subdomains allowed? Scheme enforced (https)? Fragment/query/path traversal bypass? Malformed/missing URI handling? Per-client or global? Open redirect via redirect_uri is high-severity. Test only with your own registered URIs.
+
+PROMPT 91 — Review SSO integration
+CATEGORY: OAuth, JWT, and token security
+
+Trace from IdP to session: Assertion validation (signature, expiry, audience)? Direct login bypass? Account linking by email (verified by IdP?). SSO disable → sessions revoked? Dual SSO + password access? Assertion replay? Check for: replay, unverified email linking, SSO bypass.
+
+PROMPT 92 — Review token scope enforcement
+CATEGORY: OAuth, JWT, and token security
+
+Check: Endpoint | Required Scope | Enforced? | Evidence. Common weakness: scopes requested but not checked at use time. Is scope check in middleware (consistent) or per-endpoint (error-prone)? Propose tests with minimal-scope token against privileged endpoints.
+
+PROMPT 93 — Review token revocation
+CATEGORY: OAuth, JWT, and token security
+
+Trace: Revocation Event | Access Token | Refresh Token | API Keys | Sessions. Events: password change, admin disable, user revokes app, suspicious activity, expiry. JWTs are problematic for revocation. Identify maximum window where revoked token still works.
+
+PROMPT 94 — Review GraphQL schema and introspection
+CATEGORY: GraphQL security
+
+Analyze: Introspection enabled in production? What's exposed (types, queries, mutations, subscriptions)? Admin types visible to regular users? Can introspection be enabled via headers/alternate endpoints? Do not run introspection against production unless authorized.
+
+PROMPT 95 — Review GraphQL authorization
+CATEGORY: GraphQL security
+
+Check per resolver: Type.Field | Auth Check | Where Enforced | Concern. Common weakness: auth on query but not nested resolvers (user can query own order, but order.customer resolves ANY customer). Check: missing auth on nested fields, mutations without ownership, subscriptions leaking data.
+
+PROMPT 96 — Review GraphQL query complexity
+CATEGORY: GraphQL security
+
+Check: Depth limits? Complexity/cost limits? Deeply nested relationships? Batching in one request? Rate limiting per-query or per-request? Alias duplication of expensive operations? Propose safe test with mildly complex query. Do not overload the server.
+
+PROMPT 97 — Review GraphQL input validation
+CATEGORY: GraphQL security
+
+Check: Mutation | Input Type | Scalar Validation | Custom Validation | Concern. Custom scalars (Email, URL, JSON) may not validate correctly. Check for: SQL injection via strings, XSS via returned fields, oversized payloads.
+
+PROMPT 98 — Review GraphQL batching and aliases
+CATEGORY: GraphQL security
+
+Check: Batching multiple queries? Aliases calling same query multiple times? Rate limits per-request or per-operation? Can batching bypass auth rate limits (100 login attempts in one request)? Batch size limits? Do not perform high-volume tests.
+
+PROMPT 99 — Review GraphQL error handling
+CATEGORY: GraphQL security
+
+Inspect: Errors expose implementation details (stack traces, SQL, paths)? Auth errors differ from not-found? Partial responses leak data? Error extensions contain sensitive info? GraphQL returns 200 OK with body errors — standard monitoring may miss issues.
+
+PROMPT 100 — Review WebSocket authentication
+CATEGORY: WebSocket and real-time security
+
+Trace: How authenticated (cookie, URL token, first message)? Auth checked at connection or every message? Connection outlives auth (logout, token expiry)? Origin validated (CSWSH)? Separate subscribe vs publish permissions? Check session invalidation propagation to active connections.
+
+PROMPT 101 — Review WebSocket message handling
+CATEGORY: WebSocket and real-time security
+
+Inspect: Message Type | Input Validation | Auth Check | Rate Limited? | Concern. Check: injection via content (if rendered as HTML), missing validation, channel authorization, message replay.
+
+PROMPT 102 — Review WebSocket channel authorization
+CATEGORY: WebSocket and real-time security
+
+Trace: Channel naming (predictable?), subscription authorization (cross-user access?), presence channels (who's online?), publish authorization, channel enumeration. Test with two accounts you control.
+
+PROMPT 103 — Review SSE security
+CATEGORY: WebSocket and real-time security
+
+Inspect: How authenticated (cookies, bearer in URL)? Stream scoped to user? Last-Event-ID header abuse? Stream respects access changes? Sensitive fields filtered?
+
+PROMPT 104 — Identify race-condition-prone operations
+CATEGORY: Race conditions and concurrency
+
+Identify: Operation | Read-Check-Modify? | Lock/Mutex? | Atomic? | Concern. High-risk: balance operations (TOCTOU), coupon redemption, invitation acceptance, account creation (uniqueness), vote/like operations. Check for transactions, optimistic locking, app-level locks. Do not perform high-volume concurrent requests.
+
+PROMPT 105 — Review transaction isolation
+CATEGORY: Race conditions and concurrency
+
+For atomic operations: Operation | Transaction Used? | Isolation Level | Rollback? | Concern. Check: multi-query operations without transactions, SELECT FOR UPDATE or advisory locks, ORM transaction wrapping.
+
+PROMPT 106 — Review idempotency key implementation
+CATEGORY: Race conditions and concurrency
+
+If used: How generated (client UUID, server)? Scoped to user (cross-user replay)? Lifetime? Checked before or after auth? Response matches original? If NOT used on sensitive operations (payments, transfers), flag it.
+
+PROMPT 107 — Design a race condition test
+CATEGORY: Race conditions and concurrency
+
+Design: Setup (test account, known state), Action (exact concurrent requests), Expected (one succeeds, one fails), Actual evidence (both succeed?), Cleanup, Risk controls (max concurrency, test env only). Use only test accounts with synthetic data.
+
+PROMPT 108 — Review cloud storage configuration
+CATEGORY: Cloud and infrastructure
+
+Inspect: Bucket/Container | Public Access? | Signed URLs? | Expiry | Listing Enabled? Check: public access, long-lived signed URLs, directory listing, sensitive files (backups, logs), missing encryption. Do not access buckets you don't own.
+
+PROMPT 109 — Review environment variable usage
+CATEGORY: Cloud and infrastructure
+
+Trace: Variable | Purpose | Where Used | Exposed? | Concern. Check: secrets logged or exposed via error pages, debug endpoints dumping env, default values for secrets, variables affecting security (DEBUG=true). Do not expose values.
+
+PROMPT 110 — Review error handling and information disclosure
+CATEGORY: Cloud and infrastructure
+
+Trace: Error Type | Response | Logged? | Stack Trace? | Internal Details? Check: stack traces in production, DB errors with table/column names, different error formats (info leakage), version/path disclosure.
+
+PROMPT 111 — Review logging for sensitive data
+CATEGORY: Cloud and infrastructure
+
+Inspect: Log Statement | Contains | Masked? | Level | Concern. Check: passwords in login logs, tokens in URL logs, PII in app logs, full request/response in debug, log injection (unsanitized user input).
+
+PROMPT 112 — Review deployment configuration
+CATEGORY: Cloud and infrastructure
+
+Check: debug disabled, defaults changed, admin not public, HTTPS enforced, security headers set, errors don't leak, unnecessary services closed, source maps not public, .env/.git/backups not accessible. Base on repository config files.
+
+PROMPT 113 — Review secrets in source code
+CATEGORY: Cloud and infrastructure
+
+Search: Pattern | Location | Type | Risk. Patterns: API keys, passwords, tokens, private keys, connection strings, encryption keys, webhook secrets, OAuth secrets. Check .env.example, test fixtures, comments, git history. Report location only, not values.
+
+PROMPT 114 — Review HTTP response headers for cache poisoning
+CATEGORY: Cache poisoning and HTTP smuggling
+
+Analyze: Endpoint | Cache-Control | Vary | CDN Cache | Unkeyed Headers | Concern. Check: responses varying by unkeyed headers (X-Forwarded-Host, X-Original-URL), missing Vary, CDN caching authenticated responses.
+
+PROMPT 115 — Review HTTP request handling
+CATEGORY: Cache poisoning and HTTP smuggling
+
+Check: Request smuggling (reverse proxy + server disagree on Content-Length vs Transfer-Encoding?), HTTP method override (X-HTTP-Method-Override, _method?), Host header injection (used in URL generation?), Header injection (CRLF in user input?). Base on code and config.
+
+PROMPT 116 — Review CDN and proxy configuration
+CATEGORY: Cache poisoning and HTTP smuggling
+
+Check: Client IP determination (X-Forwarded-For, X-Real-IP, CF-Connecting-IP), trusted proxy list correct? X-Forwarded-For injection to bypass IP restrictions? Paths bypassing CDN/WAF (direct origin)? CDN stripping security headers?
+
+PROMPT 117 — Review Content-Type handling
+CATEGORY: Cache poisoning and HTTP smuggling
+
+Check: Endpoint | Expected Content-Type | Alternatives Accepted? | Parsing Differences? Endpoints accepting both JSON and form data (enables CSRF), content-type confusion, file uploads trusting Content-Type.
+
+PROMPT 118 — Review Content Security Policy
+CATEGORY: Client-side and browser security
+
+Analyze: Directive | Value | Effective? | Bypass Risk. Directives: default-src, script-src, style-src, img-src, connect-src, frame-ancestors, base-uri. Flag: unsafe-inline, unsafe-eval, broad wildcards, CDN user-upload domains, missing base-uri.
+
+PROMPT 119 — Review subdomain security
+CATEGORY: Client-side and browser security
+
+Identify: CNAME to decommissioned services (takeover)? Cookie scope sharing? Dev/staging subdomains exposed? Wildcard DNS? Subdomain bypassing same-origin? Do not probe out-of-scope subdomains.
+
+PROMPT 120 — Review postMessage security
+CATEGORY: Client-side and browser security
+
+Trace: Sender | Receiver | Origin Check? | Data Validation? | Concern. Check: missing origin validation (accepting any origin), sensitive data without recipient verification, postMessage for auth decisions.
+
+PROMPT 121 — Review client-side storage
+CATEGORY: Client-side and browser security
+
+Inspect: Store | Data Type | Sensitive? | Encrypted? | Expiry | XSS Accessible? Stores: localStorage, sessionStorage, non-HttpOnly cookies, IndexedDB. Auth tokens should be in HttpOnly cookies.
+
+PROMPT 122 — Review open redirect vectors
+CATEGORY: Client-side and browser security
+
+Search: Endpoint | Parameter | Validation | Bypass Risk | Chain Potential. Check: post-login redirect, OAuth redirect_uri, email confirmation links, error redirects. Open redirect alone is low — document chain potential (OAuth, phishing).
+
+
+================================================================================
+BONUS PROMPTS — CHAINING AND STRATEGY
+================================================================================
+
+PROMPT C1 — Identify chaining opportunities
+CATEGORY: Vulnerability chaining
+
+Review findings and identify chains: Links (which findings connect), Prerequisites (what attacker needs), End impact, Each link tested?, Chain tested?, Risk of chain test. Only suggest chains with independently verified links. Do not suggest chains attacking other users.
+
+PROMPT P1 — Evaluate a bug bounty program
+CATEGORY: Program selection
+
+Analyze: Scope breadth, Technology stack, Maturity indicators, Payout history, Competition level, Beginner fit, Learning potential. Rate: GOOD FIT / MODERATE FIT / POOR FIT. Do not access the live target.
+
+PROMPT P2 — Map a target before testing
+CATEGORY: Program selection
+
+From public info: Technology fingerprint, User-facing features, API surface, Integration points, High-value targets. Do not probe the target or make network requests.
+
+
+================================================================================
+For the complete guide with workflows, decision trees, chaining maps,
+HTTP templates, platform tips, and the scoring rubric, see the
+Enhanced Edition DOCX.
+================================================================================
