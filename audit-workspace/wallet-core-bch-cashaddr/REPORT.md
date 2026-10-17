@@ -25,7 +25,7 @@ In the release configuration — `panic = "abort"` (explicitly configured in the
 - Four Rust API entry points: `CashAddress::from_str_with_hrp`, `AnyAddress::is_valid`, `AnyAddress::with_string`, and `CashAddress::from_str_unchecked`.
 - Two exported Rust C-ABI functions: `tw_any_address_is_valid` and `tw_any_address_create_with_string`, called via their `extern "C"` interface with proper `TWString` creation.
 
-**Public C++ API reachability (REFUTED):** Source-code tracing shows that the public C++ functions `TWAnyAddressIsValid` and `TWAnyAddressCreateWithString` for BitcoinCash dispatch through a **separate C++ CashAddr implementation** (`Bitcoin::Entry::validateAddress` → `BitcoinCashAddress::isValid` → `CashAddress::isValid` → `cash_decode`), not the vulnerable Rust parser. The Rust C-ABI functions are reached only via `RustCoinEntry`, which BitcoinCash does not use at this commit. See the Reachability section for the full trace.
+**Public C++ API reachability (REFUTED for both BitcoinCash and eCash):** Source-code tracing shows that the public C++ functions `TWAnyAddressIsValid` and `TWAnyAddressCreateWithString` for both BitcoinCash and eCash dispatch through a **separate C++ CashAddr implementation**, not the vulnerable Rust parser. BitcoinCash routes through `Bitcoin::Entry::validateAddress` → `BitcoinCashAddress::isValid` → `CashAddress::isValid` → `cash_decode`. eCash routes through the same `Bitcoin::Entry::validateAddress` → `ECashAddress::isValid` → `CashAddress::isValid(gECashHrp, string)` → `cash_decode`. The Rust C-ABI functions are reached only via `RustCoinEntry`, which neither BitcoinCash nor eCash uses at this commit. See the Reachability section for the full traces.
 
 ## Root cause
 
@@ -119,7 +119,13 @@ The `cabi_probe` binary calls the exported `extern "C"` functions `tw_any_addres
 - 1 aborting fuzz-artifact replay
 - 24 normal-return cases: 4 modes × 4 longer payloads (9-12) + 4 modes × 2 valid controls
 
-**C-ABI probe results (unpatched):**
+**C-ABI probe results (unpatched, exhaustive):**
+
+The extended C-ABI probe tests both `tw_any_address_is_valid` and `tw_any_address_create_with_string` for both BitcoinCash (coin id 145) and eCash (coin id 899), across all decoded payload lengths 0–12 plus valid and prefixed address controls. Each test runs in an isolated subprocess. 60 total test cases.
+
+Results are identical for both coins: every payload of 0–8 decoded symbols aborts (exit 134); payloads of 9–12, valid addresses, and prefixed addresses return normally (exit 0).
+
+Representative rows (BitcoinCash, id=145):
 
 | FFI function | Input | Decoded symbols | Exit | Result |
 |---|---|---|---|---|
@@ -127,8 +133,6 @@ The `cabi_probe` binary calls the exported `extern "C"` functions `tw_any_addres
 | `tw_any_address_create_with_string` | `""` | 0 | 134 | **abort (SIGABRT)** |
 | `tw_any_address_is_valid` | `"q"` | 1 | 134 | **abort (SIGABRT)** |
 | `tw_any_address_create_with_string` | `"q"` | 1 | 134 | **abort (SIGABRT)** |
-| `tw_any_address_is_valid` | `"qqqqqqq"` | 7 | 134 | **abort (SIGABRT)** |
-| `tw_any_address_create_with_string` | `"qqqqqqq"` | 7 | 134 | **abort (SIGABRT)** |
 | `tw_any_address_is_valid` | `"qqqqqqqq"` | 8 | 134 | **abort (SIGABRT)** |
 | `tw_any_address_create_with_string` | `"qqqqqqqq"` | 8 | 134 | **abort (SIGABRT)** |
 | `tw_any_address_is_valid` | `"qqqqqqqqq"` | 9 | 0 | returned normally |
@@ -136,7 +140,12 @@ The `cabi_probe` binary calls the exported `extern "C"` functions `tw_any_addres
 | `tw_any_address_is_valid` | valid addr | 42 | 0 | returned normally |
 | `tw_any_address_create_with_string` | valid addr | 42 | 0 | returned normally |
 
-Full C-ABI log: `evidence/logs/07-cabi-probe.log`
+Full exhaustive results for both coins: `evidence/logs/07-cabi-probe.log`
+
+**C-ABI probe counts:**
+- 60 total test cases: 2 coins × 2 functions × (13 payload lengths 0–12 + 1 valid address + 1 prefixed address)
+- 36 aborting: 2 coins × 2 functions × 9 short payloads (0–8)
+- 24 normal returns: 2 coins × 2 functions × (4 longer payloads 9–12 + 1 valid + 1 prefixed)
 
 **Fuzz artifact replay:** The 2-byte artifact `[0x59, 0x32]` selects coin index 121 (eCash) from 168 registered coins and supplies an empty address string. eCash routes through the same `BitcoinCashEntry`, confirming the vulnerability also affects eCash address parsing. See `evidence/logs/05-matrix.log`.
 
@@ -148,13 +157,16 @@ Full C-ABI log: `evidence/logs/07-cabi-probe.log`
 | 2 | Rust API | `AnyAddress::is_valid(CoinType::BitcoinCash, "", None)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
 | 3 | Rust API | `AnyAddress::with_string(CoinType::BitcoinCash, "", None)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
 | 4 | Rust API (unchecked) | `CashAddress::from_str_unchecked("")` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
-| 5 | Exported Rust C-ABI | `tw_any_address_is_valid(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
-| 6 | Exported Rust C-ABI | `tw_any_address_create_with_string(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
-| 7 | Public C++ API | `TWAnyAddressIsValid`, `TWAnyAddressCreateWithString` for BitcoinCash | **REFUTED** — separate C++ CashAddr implementation; does not reach Rust parser | — | Source trace below |
-| 8 | Trust Wallet iOS/Android | Application-level address validation | **UNVERIFIED** — no execution evidence; C++ API path mitigates for BCH | — | — |
-| 9 | Remote attacker delivery | Attacker-controlled input reaching the Rust parser | **UNVERIFIED** — no demonstrated delivery path | — | — |
+| 5 | Exported Rust C-ABI (BCH) | `tw_any_address_is_valid(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
+| 6 | Exported Rust C-ABI (BCH) | `tw_any_address_create_with_string(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
+| 7 | Exported Rust C-ABI (eCash) | `tw_any_address_is_valid(TWString(""), 899)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
+| 8 | Exported Rust C-ABI (eCash) | `tw_any_address_create_with_string(TWString(""), 899)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
+| 9 | Public C++ API (BCH) | `TWAnyAddressIsValid`, `TWAnyAddressCreateWithString` for BitcoinCash | **REFUTED** — separate C++ CashAddr implementation; does not reach Rust parser | — | Source trace below |
+| 10 | Public C++ API (eCash) | `TWAnyAddressIsValid`, `TWAnyAddressCreateWithString` for eCash | **REFUTED** — separate C++ CashAddr implementation; does not reach Rust parser | — | Source trace below |
+| 11 | Trust Wallet iOS/Android | Application-level address validation | **UNVERIFIED** — no execution evidence; C++ API path mitigates for both BCH and eCash | — | — |
+| 12 | Remote attacker delivery | Attacker-controlled input reaching the Rust parser | **UNVERIFIED** — no demonstrated delivery path | — | — |
 
-### Public C++ API call-path trace (row 7)
+### Public C++ API call-path trace — BitcoinCash (row 9)
 
 The C++ public API for BitcoinCash dispatches through a **separate C++ CashAddr parser**, not the vulnerable Rust code. The complete call chain at the target commit:
 
@@ -175,13 +187,34 @@ Key evidence:
 - `Rust::RustCoinEntry::validateAddress` (`src/rust/RustCoinEntry.cpp:17`) calls `Rust::tw_any_address_is_valid`, but BitcoinCash does not use this entry.
 - A TODO comment in `src/BitcoinCash/Entry.h:16` reads: "TODO inherit Rust::RustCoinEntry directly when `Bitcoin.proto` is deprecated." This confirms the migration to Rust has not happened for BitcoinCash at this commit.
 
+### Public C++ API call-path trace — eCash (row 10)
+
+eCash (coin id 899, `TWCoinTypeECash`) was traced independently through the C++ dispatcher. It uses `blockchain: "BitcoinCash"` in `registry.json`, so it dispatches to the same `BitcoinCashDP` entry, but with a distinct address validator. The complete call chain:
+
+```
+TWAnyAddressIsValid(string, TWCoinTypeECash)
+  → TW::validateAddress(coin, address)              [src/Coin.cpp:221, wrapped in try/catch]
+    → coinDispatcher(TWCoinTypeECash)                [src/Coin.cpp:197 → BitcoinCashDP]
+      → BitcoinCash::Entry::validateAddress(...)     [src/BitcoinCash/Entry.h:17 — inherits Bitcoin::Entry]
+        → Bitcoin::Entry::validateAddress(...)        [src/Bitcoin/Entry.cpp:36-37]
+          → ECashAddress::isValid(address)           [src/Bitcoin/CashAddress.h:76]
+            → CashAddress::isValid(gECashHrp, string) [src/Bitcoin/CashAddress.cpp:52-62]
+              → cash_decode(...)                      [C implementation, NOT Rust]
+```
+
+Key evidence (independently verified for eCash):
+- `ECashAddress` inherits from `CashAddress` and calls `CashAddress::isValid(gECashHrp, string)` (`src/Bitcoin/CashAddress.h:74-76`), where `gECashHrp` is `"ecash"` (`src/Bitcoin/CashAddress.h:69`).
+- `Bitcoin::Entry::validateAddress` has a dedicated `case TWCoinTypeECash:` (`src/Bitcoin/Entry.cpp:36-37`) calling `ECashAddress::isValid(address)`.
+- Like BitcoinCash, eCash uses `BitcoinCash::Entry` (which inherits `Bitcoin::Entry`), NOT `Rust::RustCoinEntry`.
+- The eCash C++ path terminates at the same C++ `cash_decode` function and never reaches the Rust `UncheckedCashAddress::from_str`.
+
 ## Impact and severity
 
-**Demonstrated:** A standalone Rust binary built with the wallet-core release profile (`panic = "abort"`, overflow checks off) terminates (SIGABRT, exit 134) when the Bitcoin Cash or eCash address parser receives a CashAddr payload shorter than nine decoded symbols. The crash is reproduced through four Rust API entry points (rows 1–4) and two exported Rust C-ABI functions (rows 5–6).
+**Demonstrated:** A standalone Rust binary built with the wallet-core release profile (`panic = "abort"`, overflow checks off) terminates (SIGABRT, exit 134) when the Bitcoin Cash or eCash address parser receives a CashAddr payload shorter than nine decoded symbols. The crash is reproduced through four Rust API entry points (rows 1–4) and four exported Rust C-ABI functions for both BitcoinCash and eCash (rows 5–8).
 
-**Not demonstrated, not claimed:** Remote delivery, persistence across process restarts, memory corruption, information disclosure, code execution, or any effect beyond terminating the process that calls the parser. The public C++ API (`TWAnyAddressIsValid`, `TWAnyAddressCreateWithString`) for BitcoinCash uses a separate C++ CashAddr parser and does not reach the vulnerable Rust code (row 7, REFUTED). Application-level Trust Wallet reachability has not been established.
+**Not demonstrated, not claimed:** Remote delivery, persistence across process restarts, memory corruption, information disclosure, code execution, or any effect beyond terminating the process that calls the parser. The public C++ API (`TWAnyAddressIsValid`, `TWAnyAddressCreateWithString`) for both BitcoinCash and eCash uses a separate C++ CashAddr parser and does not reach the vulnerable Rust code (rows 9–10, REFUTED). Application-level Trust Wallet reachability has not been established.
 
-**Scoring:** `AV:L` because the demonstrated trigger is a local library call via the exported Rust C-ABI; `UI:R` because a crafted string must be processed by the victim's application; `A:L` because a single process termination is shown. The score applies to the Rust library and its exported C-ABI layer. The public C++ API for BitcoinCash is not affected at this commit.
+**Scoring:** `AV:L` because the demonstrated trigger is a local library call via the exported Rust C-ABI; `UI:R` because a crafted string must be processed by the victim's application; `A:L` because a single process termination is shown. The score applies to the Rust library and its exported C-ABI layer. The public C++ API for both BitcoinCash and eCash is not affected at this commit.
 
 **Note on eligibility:** Before submitting, verify that the bounty program accepts availability findings at this severity level and that `wallet-core` Rust code (specifically the exported C-ABI layer) is in scope.
 
@@ -220,7 +253,7 @@ Suggested fix (applies cleanly to `unchecked.rs` at the target commit):
 **Patch verification:** Applied to the target commit, rebuilt, and retested:
 - All 36 previously-aborting Rust API matrix cases now return normally (exit 0).
 - The fuzz-artifact replay also returns normally.
-- Both C-ABI functions (`tw_any_address_is_valid`, `tw_any_address_create_with_string`) return normally for all previously-crashing inputs.
+- All 36 previously-aborting C-ABI cases (both coins × both functions × 9 short payloads) now return normally (exit 0). All 60 C-ABI test cases pass.
 - All 3 existing `tw_bitcoincash` unit tests continue to pass.
 - All valid addresses and longer payloads continue to parse correctly.
 Full patched results in `evidence/logs/06-patched-matrix-table.md` and `evidence/logs/08-cabi-probe-patched.log`.
@@ -249,9 +282,9 @@ Found by fuzzing the universal address parser with `cargo fuzz` (`evidence/fuzzi
 
 ## Additional notes
 
-- **Other affected coins:** eCash uses the same `BitcoinCashEntry` and is confirmed reachable via the fuzz artifact replay.
+- **Other affected coins:** eCash uses the same `BitcoinCashEntry` in the Rust dispatcher and is confirmed reachable via the fuzz artifact replay and exhaustive C-ABI probe execution (both `tw_any_address_is_valid` and `tw_any_address_create_with_string` abort for eCash coin id 899 with short payloads). The eCash public C++ API path was independently traced and is REFUTED (see row 10).
 - **`checksum.rs` is not affected:** An earlier analysis suggested `checksum.rs:30` had a similar underflow; this was incorrect — `calc_and_append_checksum` appends 8 phantom checksum bytes before the subtraction, so it cannot underflow.
 - **Signing path:** The Bitcoin Cash signer (`BitcoinSigner`) receives pre-parsed UTXO data, not raw address strings from user input. No evidence was found that the signing path reaches the vulnerable parser from attacker-controlled input.
-- **Public C++ API — separate implementation:** The C++ functions `TWAnyAddressIsValid` and `TWAnyAddressCreateWithString` for BitcoinCash dispatch through `Bitcoin::Entry::validateAddress`, which uses a C++ CashAddr parser (`cash_decode`) entirely separate from the Rust `UncheckedCashAddress::from_str`. The vulnerable Rust code is reached only through `Rust::RustCoinEntry::validateAddress`, which BitcoinCash does not use. A source-level TODO (`src/BitcoinCash/Entry.h:16`) notes that migration to `RustCoinEntry` is planned but incomplete. **If and when this migration occurs, the vulnerable Rust parser would become reachable from the public C++ API**, making this fix important regardless of current C++ API reachability.
+- **Public C++ API — separate implementation (both coins):** The C++ functions `TWAnyAddressIsValid` and `TWAnyAddressCreateWithString` for both BitcoinCash and eCash dispatch through `Bitcoin::Entry::validateAddress`, which uses a C++ CashAddr parser (`cash_decode`) entirely separate from the Rust `UncheckedCashAddress::from_str`. BitcoinCash calls `BitcoinCashAddress::isValid`; eCash calls `ECashAddress::isValid` → `CashAddress::isValid(gECashHrp, string)`. Both terminate at C++ `cash_decode`. The vulnerable Rust code is reached only through `Rust::RustCoinEntry::validateAddress`, which neither BitcoinCash nor eCash uses. A source-level TODO (`src/BitcoinCash/Entry.h:16`) notes that migration to `RustCoinEntry` is planned but incomplete. **If and when this migration occurs, the vulnerable Rust parser would become reachable from the public C++ API**, making this fix important regardless of current C++ API reachability.
 - **No catch_unwind in codebase:** Zero occurrences of `catch_unwind` were found in the entire wallet-core Rust codebase. Any panic in any Rust parser reachable from the C-ABI will terminate the host process under the `panic = "abort"` profile. The C++ `try/catch` in `TW::validateAddress` (Coin.cpp:225) cannot catch a Rust abort.
 - **Future risk:** Coins currently using `RustCoinEntry` (Solana, Cosmos, Ethereum, Polkadot, Binance, and others) already route their `validateAddress` calls through the Rust C-ABI. If any of those coins' address parsers contain similar unchecked arithmetic, they would be similarly vulnerable. The `checked_sub` / `.first()` pattern in the suggested fix should be adopted as a codebase convention.
