@@ -7,9 +7,9 @@
 | Rust parser (`CashAddress::from_str_with_hrp`) | **PROVEN** | Process abort (exit 134) reproduced for payloads 0-8 decoded symbols |
 | Rust API (`AnyAddress::is_valid`, `with_string`, `from_str_unchecked`) | **PROVEN** | All four entry points crash identically |
 | Exported Rust C-ABI (`tw_any_address_is_valid`, `tw_any_address_create_with_string`) | **PROVEN** | Both functions crash when called via extern "C" interface with TWString-wrapped inputs |
-| Public C++ API (`TWAnyAddressIsValid`, `TWAnyAddressCreateWithString`) | **SUPPORTED** | Source inspection confirms direct call-through with no panic boundary; not execution-tested |
-| Trust Wallet iOS/Android application | **UNVERIFIED** | No execution evidence of app-level reachability |
-| Remote attacker delivery | **UNVERIFIED** | No demonstrated attack path |
+| Public C++ API (`TWAnyAddressIsValid`, `TWAnyAddressCreateWithString`) | **REFUTED** | BitcoinCash dispatches through a separate C++ CashAddr parser (`cash_decode`), not the Rust parser |
+| Trust Wallet iOS/Android application | **UNVERIFIED** | No execution evidence; C++ API uses separate implementation for BCH |
+| Remote attacker delivery | **UNVERIFIED** | No demonstrated path to the Rust parser |
 | Patch correctness | **PROVEN** | All 36 previously-aborting matrix cases + fuzz replay return normally after patch; all existing unit tests pass |
 
 ## Target
