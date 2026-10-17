@@ -1,0 +1,25 @@
+--- a/rust/chains/tw_bitcoincash/src/cash_address/unchecked.rs
++++ b/rust/chains/tw_bitcoincash/src/cash_address/unchecked.rs
+@@ -113,7 +113,12 @@
+             cash_base32::decode(&address_parts.payload).map_err(|_| AddressError::InvalidInput)?;
+ 
+         // Get the payload without the checksum.
+-        let payload_u5 = &payload_with_checksum[..payload_with_checksum.len() - CHECKSUM_LEN];
++        // The decoded data must be at least `CHECKSUM_LEN` symbols long.
++        let payload_len = payload_with_checksum
++            .len()
++            .checked_sub(CHECKSUM_LEN)
++            .ok_or(AddressError::InvalidInput)?;
++        let payload_u5 = &payload_with_checksum[..payload_len];
+ 
+         let payload_data = {
+             let from = 5;
+@@ -123,7 +128,7 @@
+                 .map_err(|_| AddressError::InvalidInput)?
+         };
+ 
+-        let version_byte = payload_data[0];
++        let version_byte = *payload_data.first().ok_or(AddressError::InvalidInput)?;
+         let ty = get_address_type(version_byte)?;
+         let key_hash =
+             H160::try_from(&payload_data[1..]).map_err(|_| AddressError::InvalidInput)?;

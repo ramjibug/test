@@ -1,0 +1,25 @@
+== date (UTC)
+2026-10-17T09:04:06Z
+== wallet-core commit
+commit:  adf80f8bac989e18a4ef1922e2b9eaeb4bf804a9
+date:    2026-10-14 16:02:11 +0200
+subject: sec(keystore): require scrypt dklen == 32 and validate scrypt parameters at parse and on the encrypt path (#4897)
+== local changes
+== rustc -Vv
+rustc 1.97.0 (2d8144b78 2026-07-07)
+binary: rustc
+commit-hash: 2d8144b7880597b6e6d3dfd63a9a9efae3f533d3
+commit-date: 2026-07-07
+host: x86_64-unknown-linux-gnu
+release: 1.97.0
+LLVM version: 22.1.6
+== cargo -V
+cargo 1.97.0 (c980f4866 2026-06-30)
+== rust/Cargo.toml [profile.release]
+[profile.release]
+strip = true
+codegen-units = 1
+panic = "abort"
+
+== host
+Linux 6.18.44-fc-v139 x86_64

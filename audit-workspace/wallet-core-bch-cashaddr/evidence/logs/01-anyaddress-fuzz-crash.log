@@ -1,0 +1,84 @@
+=== BUILD ===
+   Compiling tw_evm v0.1.0 (<WALLET_CORE>/rust/tw_evm)
+   Compiling tw_ss58_address v0.1.0 (<WALLET_CORE>/rust/tw_ss58_address)
+   Compiling tw_ton_sdk v0.1.0 (<WALLET_CORE>/rust/frameworks/tw_ton_sdk)
+   Compiling tw_utxo v0.1.0 (<WALLET_CORE>/rust/frameworks/tw_utxo)
+   Compiling tw_substrate v0.1.0 (<WALLET_CORE>/rust/frameworks/tw_substrate)
+   Compiling tw_ripple v0.1.0 (<WALLET_CORE>/rust/chains/tw_ripple)
+   Compiling tw_pactus v0.1.0 (<WALLET_CORE>/rust/chains/tw_pactus)
+   Compiling tw_ton v0.1.0 (<WALLET_CORE>/rust/chains/tw_ton)
+   Compiling tw_bitcoin v0.1.0 (<WALLET_CORE>/rust/chains/tw_bitcoin)
+   Compiling tw_cosmos v0.1.0 (<WALLET_CORE>/rust/chains/tw_cosmos)
+   Compiling tw_native_injective v0.1.0 (<WALLET_CORE>/rust/chains/tw_native_injective)
+   Compiling tw_native_evmos v0.1.0 (<WALLET_CORE>/rust/chains/tw_native_evmos)
+   Compiling tw_thorchain v0.1.0 (<WALLET_CORE>/rust/chains/tw_thorchain)
+   Compiling tw_polkadot v0.1.0 (<WALLET_CORE>/rust/chains/tw_polkadot)
+   Compiling tw_polymesh v0.1.0 (<WALLET_CORE>/rust/chains/tw_polymesh)
+   Compiling tw_zcash v0.1.0 (<WALLET_CORE>/rust/chains/tw_zcash)
+   Compiling tw_ronin v0.1.0 (<WALLET_CORE>/rust/chains/tw_ronin)
+   Compiling tw_komodo v0.1.0 (<WALLET_CORE>/rust/chains/tw_komodo)
+   Compiling tw_ethereum v0.1.0 (<WALLET_CORE>/rust/chains/tw_ethereum)
+   Compiling tw_binance v0.1.0 (<WALLET_CORE>/rust/chains/tw_binance)
+   Compiling tw_greenfield v0.1.0 (<WALLET_CORE>/rust/chains/tw_greenfield)
+   Compiling tw_decred v0.1.0 (<WALLET_CORE>/rust/chains/tw_decred)
+   Compiling tw_bitcoincash v0.1.0 (<WALLET_CORE>/rust/chains/tw_bitcoincash)
+   Compiling tw_groestlcoin v0.1.0 (<WALLET_CORE>/rust/chains/tw_groestlcoin)
+   Compiling tw_solana v0.1.0 (<WALLET_CORE>/rust/chains/tw_solana)
+   Compiling tw_sui v0.1.0 (<WALLET_CORE>/rust/chains/tw_sui)
+   Compiling tw_aptos v0.1.0 (<WALLET_CORE>/rust/chains/tw_aptos)
+   Compiling tw_any_coin v0.1.0 (<WALLET_CORE>/rust/tw_any_coin)
+   Compiling tw_any_coin-fuzz v0.0.0 (<WALLET_CORE>/rust/tw_any_coin/fuzz)
+    Finished `release` profile [optimized + debuginfo] target(s) in 1m 59s
+BUILD_EXIT=
+=== RUN anyaddress (300s) ===
+    #20 0x556ae80182bb  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xbca2bb) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #21 0x556ae801ad9c  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xbccd9c) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #22 0x556ae905f904  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c11904) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #23 0x556ae9060548  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c12548) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #24 0x556ae905effd  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c10ffd) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #25 0x556ae906637b  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c1837b) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #26 0x556ae906a677  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c1c677) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #27 0x556ae906d072  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c1f072) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #28 0x556ae906fc37  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c21c37) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #29 0x556ae908ffd6  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c41fd6) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #30 0x556ae90b47f2  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c667f2) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #31 0x7f2254283fb9  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x29fb9) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #32 0x7f22542840d6  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a0d6) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #33 0x556ae7f503a0  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xb023a0) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal
+MS: 1 ChangeByte-; base unit: 5bd2849bc97f613567cd91bc70158eed7b765044
+0x59,0x32,
+Y2
+artifact_prefix='<WALLET_CORE>/rust/tw_any_coin/fuzz/artifacts/anyaddress/'; Test unit written to <WALLET_CORE>/rust/tw_any_coin/fuzz/artifacts/anyaddress/crash-0b94ee470ea1beccfb38b3709e5550b664db9c1e
+Base64: WTI=
+
+────────────────────────────────────────────────────────────────────────────────
+
+Failing input:
+
+	fuzz/artifacts/anyaddress/crash-0b94ee470ea1beccfb38b3709e5550b664db9c1e
+
+Output of `std::fmt::Debug`:
+
+	[89, 50]
+
+Reproduce with:
+
+	cargo fuzz run anyaddress fuzz/artifacts/anyaddress/crash-0b94ee470ea1beccfb38b3709e5550b664db9c1e
+
+Minimize test case with:
+
+	cargo fuzz tmin anyaddress fuzz/artifacts/anyaddress/crash-0b94ee470ea1beccfb38b3709e5550b664db9c1e
+
+────────────────────────────────────────────────────────────────────────────────
+
+Error: Fuzz target exited with exit status: 77
+RUN_EXIT=
+=== ARTIFACTS ===
+total 12
+drwxrwxr-x 2 user user 4096 Oct 17 12:43 .
+drwxrwxr-x 3 user user 4096 Oct 17 12:43 ..
+-rw-rw-r-- 1 user user    2 Oct 17 12:43 crash-0b94ee470ea1beccfb38b3709e5550b664db9c1e

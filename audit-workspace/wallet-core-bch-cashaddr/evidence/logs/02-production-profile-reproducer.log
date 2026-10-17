@@ -1,0 +1,33 @@
+=== BUILD (release: overflow-checks=off, panic=abort) ===
+   Compiling tw_base58_address v0.1.0 (<WALLET_CORE>/rust/tw_base58_address)
+   Compiling tw_utxo v0.1.0 (<WALLET_CORE>/rust/frameworks/tw_utxo)
+   Compiling tw_bitcoin v0.1.0 (<WALLET_CORE>/rust/chains/tw_bitcoin)
+   Compiling tw_bitcoincash v0.1.0 (<WALLET_CORE>/rust/chains/tw_bitcoincash)
+   Compiling bch_repro v0.0.0 (<TMP>)
+    Finished `release` profile [optimized] target(s) in 29.37s
+BUILD_EXIT=
+=== run input=[] ===
+[repro] input = "" (byte len 0)
+
+thread 'main' (117039) panicked at <WALLET_CORE>/rust/chains/tw_bitcoincash/src/cash_address/unchecked.rs:116:48:
+range end index 18446744073709551608 out of range for slice of length 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+EXIT=134
+=== run input=[q] ===
+[repro] input = "q" (byte len 1)
+
+thread 'main' (117040) panicked at <WALLET_CORE>/rust/chains/tw_bitcoincash/src/cash_address/unchecked.rs:116:48:
+range end index 18446744073709551609 out of range for slice of length 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+EXIT=134
+=== run input=[qqqqqqq] ===
+[repro] input = "qqqqqqq" (byte len 7)
+
+thread 'main' (117041) panicked at <WALLET_CORE>/rust/chains/tw_bitcoincash/src/cash_address/unchecked.rs:116:48:
+range end index 18446744073709551615 out of range for slice of length 7
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+EXIT=134
+=== run input=[qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] input = "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 42)
+[repro] returned cleanly, is_ok = true
+EXIT=0

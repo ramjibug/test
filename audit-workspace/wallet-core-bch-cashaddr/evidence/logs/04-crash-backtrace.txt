@@ -1,0 +1,94 @@
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 561189211
+INFO: Loaded 1 modules   (320625 inline 8-bit counters): 320625 [0x55d5f53cd880, 0x55d5f541bcf1), 
+INFO: Loaded 1 PC tables (320625 PCs): 320625 [0x55d5f541bcf8,0x55d5f5900408), 
+<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress: Running 1 inputs 1 time(s) each.
+Running: <EVIDENCE>/evidence/fuzzing/crash-0b94ee470ea1beccfb38b3709e5550b664db9c1e
+
+thread '<unnamed>' (127156) panicked at <WALLET_CORE>/rust/chains/tw_bitcoincash/src/cash_address/unchecked.rs:116:51:
+attempt to subtract with overflow
+stack backtrace:
+   0: __rustc::rust_begin_unwind
+             at /rustc/5d8fec0669a64607db9ccbf663e7c23125bf4748/library/std/src/panicking.rs:676:5
+   1: core::panicking::panic_fmt
+             at /rustc/5d8fec0669a64607db9ccbf663e7c23125bf4748/library/core/src/panicking.rs:80:14
+   2: core::panicking::panic_const::panic_const_sub_overflow
+             at /rustc/5d8fec0669a64607db9ccbf663e7c23125bf4748/library/core/src/panicking.rs:175:17
+   3: from_str
+             at ./chains/tw_bitcoincash/src/cash_address/unchecked.rs:116:51
+   4: from_str_with_hrp
+             at ./chains/tw_bitcoincash/src/cash_address/mod.rs:77:9
+   5: from_str_with_coin_and_hrp
+             at ./chains/tw_bitcoincash/src/cash_address/mod.rs:73:9
+   6: from_str_with_coin_and_prefix
+             at ./chains/tw_bitcoincash/src/address.rs:34:27
+   7: parse_address
+             at ./chains/tw_bitcoincash/src/entry.rs:49:9
+   8: validate_address<tw_bitcoincash::entry::BitcoinCashEntry>
+             at ./tw_coin_entry/src/coin_entry_ext.rs:122:14
+   9: is_valid
+             at ./tw_any_coin/src/any_address.rs:26:15
+  10: __libfuzzer_sys_run
+             at ./tw_any_coin/fuzz/fuzz_targets/anyaddress.rs:24:17
+  11: rust_fuzzer_test_input
+             at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libfuzzer-sys-0.4.13/src/lib.rs:276:60
+  12: {closure#0}
+             at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libfuzzer-sys-0.4.13/src/lib.rs:62:9
+  13: do_call<libfuzzer_sys::test_input_wrap::{closure_env#0}, i32>
+             at /rustc/5d8fec0669a64607db9ccbf663e7c23125bf4748/library/std/src/panicking.rs:573:43
+  14: __rust_try
+  15: catch_unwind<i32, libfuzzer_sys::test_input_wrap::{closure_env#0}>
+             at /rustc/5d8fec0669a64607db9ccbf663e7c23125bf4748/library/std/src/panicking.rs:541:19
+  16: catch_unwind<libfuzzer_sys::test_input_wrap::{closure_env#0}, i32>
+             at /rustc/5d8fec0669a64607db9ccbf663e7c23125bf4748/library/std/src/panic.rs:359:14
+  17: test_input_wrap
+             at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libfuzzer-sys-0.4.13/src/lib.rs:60:22
+  18: _ZN6fuzzer6Fuzzer15ExecuteCallbackEPKhm
+             at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libfuzzer-sys-0.4.13/libfuzzer/FuzzerLoop.cpp:619:15
+  19: _ZN6fuzzer10RunOneTestEPNS_6FuzzerEPKcm
+             at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libfuzzer-sys-0.4.13/libfuzzer/FuzzerDriver.cpp:335:21
+  20: _ZN6fuzzer12FuzzerDriverEPiPPPcPFiPKhmE
+             at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libfuzzer-sys-0.4.13/libfuzzer/FuzzerDriver.cpp:871:19
+  21: main
+             at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libfuzzer-sys-0.4.13/libfuzzer/FuzzerMain.cpp:20:30
+  22: <unknown>
+  23: __libc_start_main
+  24: _start
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.
+==127156== ERROR: libFuzzer: deadly signal
+    #0 0x55d5f41b9801  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xba1801) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #1 0x55d5f527bdc9  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c63dc9) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #2 0x55d5f522fdd5  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c17dd5) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #3 0x7f060b6cc6af  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x406af) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #4 0x7f060b722fab  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x96fab) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #5 0x7f060b6cc581  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x40581) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #6 0x7f060b6b4506  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x28506) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #7 0x55d5f52a7719  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c8f719) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #8 0x55d5f52a6338  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c8e338) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #9 0x55d5f5229d74  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c11d74) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #10 0x55d5f52a65c1  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c8e5c1) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #11 0x55d5f52940e3  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c7c0e3) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #12 0x55d5f528ca08  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c74a08) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #13 0x55d5f52948cc  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c7c8cc) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #14 0x55d5f52bd98b  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1ca598b) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #15 0x55d5f52be5f8  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1ca65f8) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #16 0x55d5f4a9359b  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x147b59b) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #17 0x55d5f4a8b49a  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x147349a) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #18 0x55d5f4a8c90c  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x147490c) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #19 0x55d5f44790dd  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xe610dd) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #20 0x55d5f41e22bb  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xbca2bb) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #21 0x55d5f41e4d9c  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xbccd9c) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #22 0x55d5f5229904  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c11904) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #23 0x55d5f522a548  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c12548) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #24 0x55d5f5228ffd  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c10ffd) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #25 0x55d5f523037b  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c1837b) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #26 0x55d5f5249920  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c31920) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #27 0x55d5f5258ae1  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c40ae1) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #28 0x55d5f527e7f2  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0x1c667f2) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+    #29 0x7f060b6b5fb9  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x29fb9) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #30 0x7f060b6b60d6  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x2a0d6) (BuildId: 9bee4eb8329d9d71d9f59a08465751cbc1a1f7cf)
+    #31 0x55d5f411a3a0  (<WALLET_CORE>/rust/tw_any_coin/fuzz/target/x86_64-unknown-linux-gnu/release/anyaddress+0xb023a0) (BuildId: a5de5d4bf3c7297818880280a1f363abc6224673)
+
+NOTE: libFuzzer has rudimentary signal handlers.
+      Combine libFuzzer with AddressSanitizer or similar for better crash reports.
+SUMMARY: libFuzzer: deadly signal

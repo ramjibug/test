@@ -1,0 +1,25 @@
+[package]
+name = "bch_repro"
+version = "0.0.0"
+edition = "2021"
+
+[[bin]]
+name = "bch_repro"
+path = "main.rs"
+
+[dependencies]
+# Set <WALLET_CORE> to your checkout (commit in evidence/source/VERSION.txt).
+tw_bitcoincash   = { path = "<WALLET_CORE>/rust/chains/tw_bitcoincash" }
+tw_any_coin      = { path = "<WALLET_CORE>/rust/tw_any_coin" }
+tw_coin_registry = { path = "<WALLET_CORE>/rust/tw_coin_registry" }
+
+# Release behaviour being reproduced:
+#   panic = "abort"          set in wallet-core/rust/Cargo.toml [profile.release]
+#                            (the real block is captured in logs/00-environment.log)
+#   overflow-checks = false  Cargo's default for release builds; spelled out here for clarity
+[profile.release]
+overflow-checks = false
+panic = "abort"
+
+# Isolate from the wallet-core workspace.
+[workspace]

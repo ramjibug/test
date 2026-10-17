@@ -1,0 +1,305 @@
+=== mode=parser input=[] ===
+[repro] input = "" (byte len 0)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[q] ===
+[repro] input = "q" (byte len 1)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qq] ===
+[repro] input = "qq" (byte len 2)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqq] ===
+[repro] input = "qqq" (byte len 3)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqq] ===
+[repro] input = "qqqq" (byte len 4)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqq] ===
+[repro] input = "qqqqq" (byte len 5)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqqq] ===
+[repro] input = "qqqqqq" (byte len 6)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqqqq] ===
+[repro] input = "qqqqqqq" (byte len 7)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqqqqq] ===
+[repro] input = "qqqqqqqq" (byte len 8)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqqqqqq] ===
+[repro] input = "qqqqqqqqq" (byte len 9)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqqqqqqq] ===
+[repro] input = "qqqqqqqqqq" (byte len 10)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqqqqqqqq] ===
+[repro] input = "qqqqqqqqqqq" (byte len 11)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qqqqqqqqqqqq] ===
+[repro] input = "qqqqqqqqqqqq" (byte len 12)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=parser input=[qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] input = "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 42)
+[repro] returned cleanly, is_ok = true
+EXIT=0
+
+=== mode=parser input=[bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] input = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 54)
+[repro] returned cleanly, is_ok = true
+EXIT=0
+
+=== mode=is_valid input=[] ===
+[repro] mode=is_valid coin=BitcoinCash input = "" (byte len 0)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[q] ===
+[repro] mode=is_valid coin=BitcoinCash input = "q" (byte len 1)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qq" (byte len 2)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqq" (byte len 3)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqq" (byte len 4)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqq" (byte len 5)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqqq" (byte len 6)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqqqq" (byte len 7)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqqqqq" (byte len 8)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqqqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqqqqqq" (byte len 9)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqqqqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqqqqqqq" (byte len 10)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqqqqqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqqqqqqqq" (byte len 11)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qqqqqqqqqqqq] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qqqqqqqqqqqq" (byte len 12)
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
+=== mode=is_valid input=[qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] mode=is_valid coin=BitcoinCash input = "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 42)
+[repro] returned cleanly, is_valid = true
+EXIT=0
+
+=== mode=is_valid input=[bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] mode=is_valid coin=BitcoinCash input = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 54)
+[repro] returned cleanly, is_valid = true
+EXIT=0
+
+=== mode=with_string input=[] ===
+[repro] mode=with_string coin=BitcoinCash input = "" (byte len 0)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[q] ===
+[repro] mode=with_string coin=BitcoinCash input = "q" (byte len 1)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qq" (byte len 2)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqq" (byte len 3)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqq" (byte len 4)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqq" (byte len 5)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqqq" (byte len 6)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqqqq" (byte len 7)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqqqqq" (byte len 8)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqqqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqqqqqq" (byte len 9)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqqqqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqqqqqqq" (byte len 10)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqqqqqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqqqqqqqq" (byte len 11)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qqqqqqqqqqqq] ===
+[repro] mode=with_string coin=BitcoinCash input = "qqqqqqqqqqqq" (byte len 12)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string input=[qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] mode=with_string coin=BitcoinCash input = "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 42)
+[repro] returned cleanly, is_ok = true
+EXIT=0
+
+=== mode=with_string input=[bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] mode=with_string coin=BitcoinCash input = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 54)
+[repro] returned cleanly, is_ok = true
+EXIT=0
+
+=== mode=with_string_unchecked input=[] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "" (byte len 0)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[q] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "q" (byte len 1)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qq" (byte len 2)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqq" (byte len 3)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqq" (byte len 4)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqq" (byte len 5)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqqq" (byte len 6)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqqqq" (byte len 7)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqqqqq" (byte len 8)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqqqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqqqqqq" (byte len 9)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqqqqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqqqqqqq" (byte len 10)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqqqqqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqqqqqqqq" (byte len 11)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qqqqqqqqqqqq] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qqqqqqqqqqqq" (byte len 12)
+[repro] returned cleanly, is_ok = false
+EXIT=0
+
+=== mode=with_string_unchecked input=[qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 42)
+[repro] returned cleanly, is_ok = true
+EXIT=0
+
+=== mode=with_string_unchecked input=[bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] ===
+[repro] mode=with_string_unchecked (via CashAddress::from_str_unchecked) input = "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a" (byte len 54)
+[repro] returned cleanly, is_ok = true
+EXIT=0
+
+=== mode=replay input=[/tmp/claude-0/-home-user-test/0fb4c66e-d804-5832-a9b4-66624581a768/scratchpad/evidence_work/extracted_bundle/binance/evidence/fuzzing/crash-0b94ee470ea1beccfb38b3709e5550b664db9c1e] ===
+[repro] mode=replay coins.len() = 168 idx = 121 coin = eCash address = ""
+[repro] returned cleanly, is_valid = false
+EXIT=0
+
