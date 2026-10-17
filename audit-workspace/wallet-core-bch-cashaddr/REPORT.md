@@ -25,7 +25,7 @@ In the release configuration — `panic = "abort"` (explicitly configured in the
 - Four Rust API entry points: `CashAddress::from_str_with_hrp`, `AnyAddress::is_valid`, `AnyAddress::with_string`, and `CashAddress::from_str_unchecked`.
 - Two exported Rust C-ABI functions: `tw_any_address_is_valid` and `tw_any_address_create_with_string`, called via their `extern "C"` interface with proper `TWString` creation.
 
-The public C++ wrapper API (`TWAnyAddressIsValid`, `TWAnyAddressCreateWithString`) and application-level (Trust Wallet iOS/Android) reachability have **not** been execution-tested.
+**Public C++ API reachability (REFUTED):** Source-code tracing shows that the public C++ functions `TWAnyAddressIsValid` and `TWAnyAddressCreateWithString` for BitcoinCash dispatch through a **separate C++ CashAddr implementation** (`Bitcoin::Entry::validateAddress` → `BitcoinCashAddress::isValid` → `CashAddress::isValid` → `cash_decode`), not the vulnerable Rust parser. The Rust C-ABI functions are reached only via `RustCoinEntry`, which BitcoinCash does not use at this commit. See the Reachability section for the full trace.
 
 ## Root cause
 
@@ -150,9 +150,30 @@ Full C-ABI log: `evidence/logs/07-cabi-probe.log`
 | 4 | Rust API (unchecked) | `CashAddress::from_str_unchecked("")` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
 | 5 | Exported Rust C-ABI | `tw_any_address_is_valid(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
 | 6 | Exported Rust C-ABI | `tw_any_address_create_with_string(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
-| 7 | Public C++ API | `TWAnyAddressIsValid`, `TWAnyAddressCreateWithString` | **SUPPORTED** — source inspection shows direct call-through with no panic boundary; not execution-tested | — | `evidence/source/tw_any_address_ffi.rs` |
-| 8 | Trust Wallet iOS/Android | Application-level address validation | **UNVERIFIED** — no execution evidence | — | — |
-| 9 | Remote attacker delivery | Attacker-controlled input reaching the parser | **UNVERIFIED** — no demonstrated delivery path | — | — |
+| 7 | Public C++ API | `TWAnyAddressIsValid`, `TWAnyAddressCreateWithString` for BitcoinCash | **REFUTED** — separate C++ CashAddr implementation; does not reach Rust parser | — | Source trace below |
+| 8 | Trust Wallet iOS/Android | Application-level address validation | **UNVERIFIED** — no execution evidence; C++ API path mitigates for BCH | — | — |
+| 9 | Remote attacker delivery | Attacker-controlled input reaching the Rust parser | **UNVERIFIED** — no demonstrated delivery path | — | — |
+
+### Public C++ API call-path trace (row 7)
+
+The C++ public API for BitcoinCash dispatches through a **separate C++ CashAddr parser**, not the vulnerable Rust code. The complete call chain at the target commit:
+
+```
+TWAnyAddressIsValid(string, TWCoinTypeBitcoinCash)
+  → TW::validateAddress(coin, address)              [src/Coin.cpp:221, wrapped in try/catch]
+    → coinDispatcher(TWCoinTypeBitcoinCash)          [src/Coin.cpp:197 → BitcoinCashDP]
+      → BitcoinCash::Entry::validateAddress(...)     [src/BitcoinCash/Entry.h:17 — inherits Bitcoin::Entry]
+        → Bitcoin::Entry::validateAddress(...)        [src/Bitcoin/Entry.cpp:34-35]
+          → BitcoinCashAddress::isValid(address)     [src/Bitcoin/CashAddress.h:61]
+            → CashAddress::isValid(hrp, string)      [src/Bitcoin/CashAddress.cpp:52-62]
+              → cash_decode(...)                      [C implementation, NOT Rust]
+```
+
+Key evidence:
+- `BitcoinCash::Entry` inherits from `Bitcoin::Entry` (`src/BitcoinCash/Entry.h:17`), NOT from `Rust::RustCoinEntry`.
+- `Bitcoin::Entry::validateAddress` calls `BitcoinCashAddress::isValid` for `TWCoinTypeBitcoinCash` (`src/Bitcoin/Entry.cpp:35`), which uses the C++ `cash_decode` function.
+- `Rust::RustCoinEntry::validateAddress` (`src/rust/RustCoinEntry.cpp:17`) calls `Rust::tw_any_address_is_valid`, but BitcoinCash does not use this entry.
+- A TODO comment in `src/BitcoinCash/Entry.h:16` reads: "TODO inherit Rust::RustCoinEntry directly when `Bitcoin.proto` is deprecated." This confirms the migration to Rust has not happened for BitcoinCash at this commit.
 
 ## Impact and severity
 
