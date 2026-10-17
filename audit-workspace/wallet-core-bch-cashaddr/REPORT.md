@@ -21,7 +21,11 @@ In the release configuration — `panic = "abort"` (explicitly configured in the
 
 **Demonstrated impact:** process termination only. No memory corruption, information disclosure, or code execution was observed; Rust's bounds check prevents out-of-bounds memory access.
 
-**API reachability:** Crashes were reproduced through four Rust API entry points: `CashAddress::from_str_with_hrp`, `AnyAddress::is_valid`, `AnyAddress::with_string`, and `CashAddress::from_str_unchecked`. The exported Rust C-ABI functions (`tw_any_address_is_valid`, `tw_any_address_create_with_string`, `tw_any_address_create_with_string_unchecked`) pass strings through to these functions with no length check and no `catch_unwind` (confirmed by source inspection, not by execution). The public uppercase C API functions and application-level reachability have not been execution-tested.
+**API reachability:** Crashes were reproduced by execution through:
+- Four Rust API entry points: `CashAddress::from_str_with_hrp`, `AnyAddress::is_valid`, `AnyAddress::with_string`, and `CashAddress::from_str_unchecked`.
+- Two exported Rust C-ABI functions: `tw_any_address_is_valid` and `tw_any_address_create_with_string`, called via their `extern "C"` interface with proper `TWString` creation.
+
+The public C++ wrapper API (`TWAnyAddressIsValid`, `TWAnyAddressCreateWithString`) and application-level (Trust Wallet iOS/Android) reachability have **not** been execution-tested.
 
 ## Root cause
 
@@ -73,11 +77,11 @@ No explicit `overflow-checks` setting; Cargo's release default is `false`.
 - Host: Linux 6.18.44-fc-v139 x86_64
 - Full environment capture: `evidence/logs/00-environment.log`
 
-**Build and run:**
+**Build and run (Rust API PoC):**
 
 ```bash
 cd evidence/poc
-# Set <WALLET_CORE> in Cargo.toml to point to a wallet-core checkout at the target commit
+# Edit Cargo.toml: replace <WALLET_CORE> with the path to a wallet-core checkout at the target commit.
 cargo build --release
 ./target/release/bch_repro parser ""          # exit 134
 ./target/release/bch_repro is_valid ""        # exit 134
@@ -86,7 +90,17 @@ cargo build --release
 ./target/release/bch_repro parser "qqqqqqqq"  # exit 134 (second panic site)
 ```
 
-**Core results (parser mode, release profile):**
+**Build and run (C-ABI probe):**
+
+```bash
+cd evidence/poc
+cargo build --release --bin cabi_probe
+./target/release/cabi_probe    # runs each input in a subprocess; reports exit codes
+```
+
+The `cabi_probe` binary calls the exported `extern "C"` functions `tw_any_address_is_valid` and `tw_any_address_create_with_string` with `TWString`-wrapped inputs, exactly as a C/C++ consumer would through the linker.
+
+**Rust API matrix results (unpatched):**
 
 | Input | Decoded symbols | Panic location | Exit | Panic message |
 |---|---|---|---|---|
@@ -97,31 +111,58 @@ cargo build --release
 | `"qqqqqqqqq"` | 9 | — | 0 | returned normally (error) |
 | valid addr | 42 | — | 0 | returned normally (`is_ok = true`) |
 
-**Full test matrix:** All four API modes (parser, is_valid, with_string, with_string_unchecked) were tested with decoded payload lengths 0 through 12, plus valid and prefixed controls. Complete results in `evidence/logs/05-matrix-table.md`. Every mode aborts for payloads 0–8 and returns normally for 9+.
+**Full test matrix:** All four Rust API modes (parser, is_valid, with_string, with_string_unchecked) were tested with decoded payload lengths 0 through 12, plus valid and prefixed controls. Complete results in `evidence/logs/05-matrix-table.md`.
+
+**Matrix counts:**
+- 61 total cases: 4 modes × 13 payload lengths (0-12) + 4 modes × 2 valid controls + 1 fuzz replay
+- 36 aborting matrix cases: 4 modes × 9 short inputs (payloads 0-8)
+- 1 aborting fuzz-artifact replay
+- 24 normal-return cases: 4 modes × 4 longer payloads (9-12) + 4 modes × 2 valid controls
+
+**C-ABI probe results (unpatched):**
+
+| FFI function | Input | Decoded symbols | Exit | Result |
+|---|---|---|---|---|
+| `tw_any_address_is_valid` | `""` | 0 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `""` | 0 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `"q"` | 1 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `"q"` | 1 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `"qqqqqqq"` | 7 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `"qqqqqqq"` | 7 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `"qqqqqqqq"` | 8 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `"qqqqqqqq"` | 8 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `"qqqqqqqqq"` | 9 | 0 | returned normally |
+| `tw_any_address_create_with_string` | `"qqqqqqqqq"` | 9 | 0 | returned normally |
+| `tw_any_address_is_valid` | valid addr | 42 | 0 | returned normally |
+| `tw_any_address_create_with_string` | valid addr | 42 | 0 | returned normally |
+
+Full C-ABI log: `evidence/logs/07-cabi-probe.log`
 
 **Fuzz artifact replay:** The 2-byte artifact `[0x59, 0x32]` selects coin index 121 (eCash) from 168 registered coins and supplies an empty address string. eCash routes through the same `BitcoinCashEntry`, confirming the vulnerability also affects eCash address parsing. See `evidence/logs/05-matrix.log`.
 
 ## Reachability
 
-| # | Layer | Call | Result | Evidence |
-|---|---|---|---|---|
-| 1 | Rust parser | `CashAddress::from_str_with_hrp("", "bitcoincash")` | **PASS — abort, exit 134** at `unchecked.rs:116` | `evidence/logs/05-matrix.log` |
-| 2 | Rust API | `AnyAddress::is_valid(CoinType::BitcoinCash, "", None)` | **PASS — abort, exit 134** at `unchecked.rs:116` | `evidence/logs/05-matrix.log` |
-| 3 | Rust API | `AnyAddress::with_string(CoinType::BitcoinCash, "", None)` | **PASS — abort, exit 134** at `unchecked.rs:116` | `evidence/logs/05-matrix.log` |
-| 4 | Rust API (unchecked) | `CashAddress::from_str_unchecked("")` (path behind `tw_any_address_create_with_string_unchecked` FFI) | **PASS — abort, exit 134** at `unchecked.rs:116` | `evidence/logs/05-matrix.log` |
-| 5 | Exported Rust C-ABI | `tw_any_address_is_valid`, `tw_any_address_create_with_string`, `tw_any_address_create_with_string_unchecked` | **NOT TESTED.** Source inspection: no `catch_unwind`, no length check; string passed directly to rows 2–4. | `evidence/source/tw_any_address_ffi.rs` |
-| 6 | Public C API | `TWAnyAddressIsValid`, `TWAnyAddressCreateWithString` with `TWCoinTypeBitcoinCash` | **NOT TESTED.** Requires full cmake/C++ build. | `evidence/capi_probe_test.cpp` (provided, not executed) |
-| 7 | Application | Trust Wallet iOS/Android | **NOT TESTED.** | — |
-
-Rows without a "PASS" result were not execution-tested and are not claimed.
+| # | Layer | Call | Status | Exit | Evidence |
+|---|---|---|---|---|---|
+| 1 | Rust parser | `CashAddress::from_str_with_hrp("", "bitcoincash")` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
+| 2 | Rust API | `AnyAddress::is_valid(CoinType::BitcoinCash, "", None)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
+| 3 | Rust API | `AnyAddress::with_string(CoinType::BitcoinCash, "", None)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
+| 4 | Rust API (unchecked) | `CashAddress::from_str_unchecked("")` | **PROVEN** — crash reproduced | 134 | `evidence/logs/05-matrix.log` |
+| 5 | Exported Rust C-ABI | `tw_any_address_is_valid(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
+| 6 | Exported Rust C-ABI | `tw_any_address_create_with_string(TWString(""), 145)` | **PROVEN** — crash reproduced | 134 | `evidence/logs/07-cabi-probe.log` |
+| 7 | Public C++ API | `TWAnyAddressIsValid`, `TWAnyAddressCreateWithString` | **SUPPORTED** — source inspection shows direct call-through with no panic boundary; not execution-tested | — | `evidence/source/tw_any_address_ffi.rs` |
+| 8 | Trust Wallet iOS/Android | Application-level address validation | **UNVERIFIED** — no execution evidence | — | — |
+| 9 | Remote attacker delivery | Attacker-controlled input reaching the parser | **UNVERIFIED** — no demonstrated delivery path | — | — |
 
 ## Impact and severity
 
-**Demonstrated:** A standalone Rust binary built with the wallet-core release profile (`panic = "abort"`, overflow checks off) terminates (SIGABRT, exit 134) when the Bitcoin Cash or eCash address parser receives a CashAddr payload shorter than nine decoded symbols. The crash is reproduced through four Rust API entry points (rows 1–4).
+**Demonstrated:** A standalone Rust binary built with the wallet-core release profile (`panic = "abort"`, overflow checks off) terminates (SIGABRT, exit 134) when the Bitcoin Cash or eCash address parser receives a CashAddr payload shorter than nine decoded symbols. The crash is reproduced through four Rust API entry points (rows 1–4) and two exported Rust C-ABI functions (rows 5–6).
 
-**Not demonstrated, not claimed:** Remote delivery, persistence across process restarts, memory corruption, information disclosure, code execution, or any effect beyond terminating the process that calls the parser. Product-level reachability (public C API, Trust Wallet apps) has not been established by execution; this report covers the library-level defect.
+**Not demonstrated, not claimed:** Remote delivery, persistence across process restarts, memory corruption, information disclosure, code execution, or any effect beyond terminating the process that calls the parser. Public C++ API and Trust Wallet application reachability have not been established by execution; this report covers the library and exported C-ABI layers.
 
-**Scoring:** `AV:L` because the demonstrated trigger is a local library call; `UI:R` because a crafted string has to be processed by the victim's application; `A:L` because a single process termination is shown. If product-level reachability is demonstrated in a follow-up, the vector should be recalculated from the attack vector, interaction, and persistence actually shown.
+**Scoring:** `AV:L` because the demonstrated trigger is a local library call via the exported C-ABI; `UI:R` because a crafted string must be processed by the victim's application; `A:L` because a single process termination is shown. If public C++ API or application-level reachability is demonstrated in a follow-up, the vector should be recalculated from the attack vector, interaction, and persistence actually shown.
+
+**Note on eligibility:** Before submitting, verify that the bounty program accepts availability findings at this severity level and that `wallet-core` Rust code is in scope.
 
 ## Remediation
 
@@ -155,9 +196,15 @@ Suggested fix (applies cleanly to `unchecked.rs` at the target commit):
              H160::try_from(&payload_data[1..]).map_err(|_| AddressError::InvalidInput)?;
 ```
 
-**Patch verification:** Applied to the target commit, rebuilt, and rerun with the full matrix. All 60 previously-aborting test cases now return normally (exit 0). All valid addresses and all existing unit tests continue to pass. Full results in `evidence/logs/06-patched-matrix-table.md`.
+**Patch verification:** Applied to the target commit, rebuilt, and retested:
+- All 36 previously-aborting Rust API matrix cases now return normally (exit 0).
+- The fuzz-artifact replay also returns normally.
+- Both C-ABI functions (`tw_any_address_is_valid`, `tw_any_address_create_with_string`) return normally for all previously-crashing inputs.
+- All 3 existing `tw_bitcoincash` unit tests continue to pass.
+- All valid addresses and longer payloads continue to parse correctly.
+Full patched results in `evidence/logs/06-patched-matrix-table.md` and `evidence/logs/08-cabi-probe-patched.log`.
 
-Regression test (`rust/chains/tw_bitcoincash/tests/short_input.rs`):
+Regression test (`evidence/fix/short_input.rs`):
 
 ```rust
 use tw_bitcoincash::cash_address::CashAddress;
@@ -184,3 +231,4 @@ Found by fuzzing the universal address parser with `cargo fuzz` (`evidence/fuzzi
 - **Other affected coins:** eCash uses the same `BitcoinCashEntry` and is confirmed reachable via the fuzz artifact replay.
 - **`checksum.rs` is not affected:** An earlier analysis suggested `checksum.rs:30` had a similar underflow; this was incorrect — `calc_and_append_checksum` appends 8 phantom checksum bytes before the subtraction, so it cannot underflow.
 - **Signing path:** The Bitcoin Cash signer (`BitcoinSigner`) receives pre-parsed UTXO data, not raw address strings from user input. No evidence was found that the signing path reaches the vulnerable parser from attacker-controlled input.
+- **Public C++ API:** The C++ functions `TWAnyAddressIsValid` and `TWAnyAddressCreateWithString` are thin wrappers that forward to the Rust C-ABI functions (`tw_any_address_is_valid`, `tw_any_address_create_with_string`). Source inspection confirms no `catch_unwind`, no exception handler, and no length check between the C++ wrapper and the Rust C-ABI. However, since the full CMake/C++ build was not executed, this path is classified as SUPPORTED (by source inspection), not PROVEN.

@@ -1,0 +1,22 @@
+=== C-ABI FFI Probe: tw_any_address_is_valid / tw_any_address_create_with_string ===
+Target: commit adf80f8bac989e18a4ef1922e2b9eaeb4bf804a9
+Coin:   BitcoinCash (id=145)
+Profile: panic="abort", overflow-checks=false
+
+| FFI function | input | decoded symbols | exit | result |
+|---|---|---|---|---|
+| `tw_any_address_is_valid` | `(empty)` | 0 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `(empty)` | 0 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `q` | 1 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `q` | 1 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `qqqqqqq` | 7 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `qqqqqqq` | 7 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `qqqqqqqq` | 8 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_create_with_string` | `qqqqqqqq` | 8 | 134 | **abort (SIGABRT)** |
+| `tw_any_address_is_valid` | `qqqqqqqqq` | 9 | 0 | returned normally |
+| `tw_any_address_create_with_string` | `qqqqqqqqq` | 9 | 0 | returned normally |
+| `tw_any_address_is_valid` | `qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a` | 42 (valid) | 0 | returned normally |
+| `tw_any_address_create_with_string` | `qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a` | 42 (valid) | 0 | returned normally |
+
+Exit 134 = SIGABRT (process termination via panic-abort)
+Exit 0   = function returned normally

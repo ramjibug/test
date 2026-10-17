@@ -1,0 +1,42 @@
+=== C-ABI FFI Probe: tw_any_address_is_valid / tw_any_address_create_with_string ===
+Target: commit adf80f8bac989e18a4ef1922e2b9eaeb4bf804a9
+Coin:   BitcoinCash (id=145)
+Profile: panic="abort", overflow-checks=false
+
+| FFI function | input | decoded symbols | exit | result |
+|---|---|---|---|---|
+| `tw_any_address_is_valid` | `(empty)` | 0 | 0 | returned normally |
+| `tw_any_address_create_with_string` | `(empty)` | 0 | 0 | returned normally |
+| `tw_any_address_is_valid` | `q` | 1 | 0 | returned normally |
+| `tw_any_address_create_with_string` | `q` | 1 | 0 | returned normally |
+| `tw_any_address_is_valid` | `qqqqqqq` | 7 | 0 | returned normally |
+| `tw_any_address_create_with_string` | `qqqqqqq` | 7 | 0 | returned normally |
+| `tw_any_address_is_valid` | `qqqqqqqq` | 8 | 0 | returned normally |
+| `tw_any_address_create_with_string` | `qqqqqqqq` | 8 | 0 | returned normally |
+| `tw_any_address_is_valid` | `qqqqqqqqq` | 9 | 0 | returned normally |
+| `tw_any_address_create_with_string` | `qqqqqqqqq` | 9 | 0 | returned normally |
+| `tw_any_address_is_valid` | `qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a` | 42 (valid) | 0 | returned normally |
+| `tw_any_address_create_with_string` | `qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a` | 42 (valid) | 0 | returned normally |
+
+Exit 134 = SIGABRT (process termination via panic-abort)
+Exit 0   = function returned normally
+parser [] exit=0
+parser [q] exit=0
+parser [qqqqqqqq] exit=0
+parser [qqqqqqqqq] exit=0
+parser [qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] exit=0
+is_valid [] exit=0
+is_valid [q] exit=0
+is_valid [qqqqqqqq] exit=0
+is_valid [qqqqqqqqq] exit=0
+is_valid [qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] exit=0
+with_string [] exit=0
+with_string [q] exit=0
+with_string [qqqqqqqq] exit=0
+with_string [qqqqqqqqq] exit=0
+with_string [qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] exit=0
+with_string_unchecked [] exit=0
+with_string_unchecked [q] exit=0
+with_string_unchecked [qqqqqqqq] exit=0
+with_string_unchecked [qqqqqqqqq] exit=0
+with_string_unchecked [qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a] exit=0

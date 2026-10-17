@@ -7,16 +7,21 @@ edition = "2021"
 name = "bch_repro"
 path = "main.rs"
 
+[[bin]]
+name = "cabi_probe"
+path = "cabi_probe.rs"
+
 [dependencies]
-# Set <WALLET_CORE> to your checkout (commit in evidence/source/VERSION.txt).
+# Set <WALLET_CORE> to the absolute path of a wallet-core checkout
+# at commit adf80f8bac989e18a4ef1922e2b9eaeb4bf804a9.
 tw_bitcoincash   = { path = "<WALLET_CORE>/rust/chains/tw_bitcoincash" }
 tw_any_coin      = { path = "<WALLET_CORE>/rust/tw_any_coin" }
 tw_coin_registry = { path = "<WALLET_CORE>/rust/tw_coin_registry" }
+tw_memory        = { path = "<WALLET_CORE>/rust/tw_memory" }
 
 # Release behaviour being reproduced:
 #   panic = "abort"          set in wallet-core/rust/Cargo.toml [profile.release]
-#                            (the real block is captured in logs/00-environment.log)
-#   overflow-checks = false  Cargo's default for release builds; spelled out here for clarity
+#   overflow-checks = false  Cargo's default for release builds; spelled out for clarity
 [profile.release]
 overflow-checks = false
 panic = "abort"
